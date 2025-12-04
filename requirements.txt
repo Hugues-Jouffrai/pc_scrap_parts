@@ -1,0 +1,6 @@
+playwright
+openai
+python-dotenv
+beautifulsoup4
+rich
+colorama
