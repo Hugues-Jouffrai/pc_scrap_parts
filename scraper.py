@@ -16,7 +16,7 @@ class AntigravityScraper:
 
     async def get_listing_data(self, url):
         """Spins up a stealthy browser to grab the raw HTML and extract key data."""
-        print(f"[bold blue]🚀 Launching Antigravity engine for:[/bold blue] {url}")
+        print(f"[bold blue]>> Launching Antigravity engine for:[/bold blue] {url}")
         async with async_playwright() as p:
             # Headless=False to look more human if needed, but trying True first for speed if possible.
             # User suggested Headless=False if needed. Let's default to True but keep it configurable if we were to expand.

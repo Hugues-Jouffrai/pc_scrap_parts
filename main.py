@@ -17,10 +17,10 @@ async def main():
     if len(sys.argv) > 1:
         target_url = sys.argv[1]
     else:
-        target_url = console.input("[bold yellow]🔗 Enter Leboncoin URL: [/bold yellow]")
+        target_url = console.input("[bold yellow]>> Enter Leboncoin URL: [/bold yellow]")
 
     if not target_url:
-        rprint("[bold red]❌ No URL provided. Exiting.[/bold red]")
+        rprint("[bold red]ERROR: No URL provided. Exiting.[/bold red]")
         return
 
     scraper = AntigravityScraper()
@@ -60,7 +60,7 @@ async def main():
         console.print(table)
         
         # Parts Breakdown
-        rprint("\n[bold]🛠️  PARTS BREAKDOWN:[/bold]")
+        rprint("\n[bold]>> PARTS BREAKDOWN:[/bold]")
         parts_table = Table(show_header=True, header_style="bold magenta")
         parts_table.add_column("Component")
         parts_table.add_column("Est. Price", justify="right")
@@ -75,11 +75,11 @@ async def main():
         
         console.print(parts_table)
         
-        rprint(f"\n[bold]📝 Reasoning:[/bold] {analysis.get('reasoning', 'No reasoning provided.')}")
+        rprint(f"\n[bold]>> Reasoning:[/bold] {analysis.get('reasoning', 'No reasoning provided.')}")
         rprint(f"[dim]URL: {data['url']}[/dim]")
 
     else:
-        rprint("[bold red]❌ Failed to retrieve data.[/bold red]")
+        rprint("[bold red]ERROR: Failed to retrieve data.[/bold red]")
 
 if __name__ == "__main__":
     asyncio.run(main())

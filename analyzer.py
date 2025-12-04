@@ -13,7 +13,7 @@ class AntigravityAnalyzer:
     
     def analyze_profitability(self, listing_data):
         """Sends text to the AI Oracle to appraise parts."""
-        print("[bold purple]🧠 Vibing with the data (AI Analysis)...[/bold purple]")
+        print("[bold purple]>> Vibing with the data (AI Analysis)...[/bold purple]")
         
         raw_text = listing_data.get('raw_text', '')
         title = listing_data.get('title', '')
