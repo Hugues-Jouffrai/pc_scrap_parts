@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LBC Arbitrage Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <header class="mb-10 flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-600 bg-clip-text text-transparent">
+                    LBC Arbitrage Dashboard
+                </h1>
+                <p class="text-slate-400 mt-2">History of scraped listings and profitability analysis</p>
+            </div>
+            <div class="text-right">
+                <a href="components_cache.html" class="text-sm text-purple-400 hover:text-purple-300 mb-2 inline-block underline">
+                    → View Components Cache
+                </a>
+                <div class="text-sm text-slate-500">Total Scans</div>
+                <div class="text-2xl font-bold" id="total-scans">0</div>
+            </div>
+        </header>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- List Column -->
+            <div class="lg:col-span-1 space-y-4">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-xl font-semibold text-slate-200">History</h2>
+                    <select id="sort-select" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm">
+                        <option value="date-desc">Newest First</option>
+                        <option value="profit-desc">Highest Profit</option>
+                        <option value="margin-desc">Best Margin</option>
+                    </select>
+                </div>
+                <div id="history-list" class="space-y-3 h-[calc(100vh-200px)] overflow-y-auto pr-2 custom-scrollbar">
+                    <!-- Items will be injected here -->
+                </div>
+            </div>
+
+            <!-- Detail Column -->
+            <div class="lg:col-span-2">
+                <div id="detail-view" class="hidden h-full">
+                    <div class="glass rounded-2xl p-8 h-full border border-slate-800 shadow-2xl">
+                        
+                        <!-- Header -->
+                        <div class="flex justify-between items-start mb-6">
+                            <div>
+                                <div class="flex items-center gap-3 mb-2">
+                                    <span id="detail-verdict" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider"></span>
+                                    <span id="detail-date" class="text-slate-500 text-sm"></span>
+                                </div>
+                                <h2 id="detail-title" class="text-2xl font-bold text-white leading-tight mb-2"></h2>
+                                <a id="detail-url" href="#" target="_blank" class="text-cyan-400 hover:text-cyan-300 text-sm flex items-center gap-1">
+                                    View on Leboncoin <i data-lucide="external-link" class="w-3 h-3"></i>
+                                </a>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-sm text-slate-400">Profit Potential</div>
+                                <div id="detail-profit" class="text-3xl font-bold text-green-400"></div>
+                                <div id="detail-margin" class="text-sm font-medium text-green-600"></div>
+                            </div>
+                        </div>
+
+                        <!-- Stats Grid -->
+                        <div class="grid grid-cols-2 gap-4 mb-8">
+                            <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
+                                <div class="text-slate-400 text-sm mb-1">Listing Price</div>
+                                <div id="detail-price" class="text-xl font-semibold text-white"></div>
+                            </div>
+                            <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
+                                <div class="text-slate-400 text-sm mb-1">Est. Resale Value</div>
+                                <div id="detail-estimated" class="text-xl font-semibold text-white"></div>
+                            </div>
+                        </div>
+
+                        <!-- Parts Table -->
+                        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <i data-lucide="cpu" class="w-5 h-5 text-slate-400"></i> Components Breakdown
+                        </h3>
+                        <div class="overflow-hidden rounded-xl border border-slate-700 mb-8">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-slate-800 text-slate-400">
+                                    <tr>
+                                        <th class="p-3 font-medium">Component</th>
+                                        <th class="p-3 font-medium text-right">Est. Price</th>
+                                        <th class="p-3 font-medium">Notes</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="detail-parts" class="divide-y divide-slate-700 bg-slate-800/30">
+                                    <!-- Parts rows -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Reasoning -->
+                        <div class="bg-slate-800/30 p-6 rounded-xl border border-slate-700/50">
+                            <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">AI Reasoning</h3>
+                            <p id="detail-reasoning" class="text-slate-300 leading-relaxed"></p>
+                        </div>
+
+                    </div>
+                </div>
+                
+                <!-- Empty State -->
+                <div id="empty-state" class="h-full flex flex-col items-center justify-center text-slate-500 p-12 border-2 border-dashed border-slate-800 rounded-2xl">
+                    <i data-lucide="mouse-pointer-2" class="w-12 h-12 mb-4 opacity-50"></i>
+                    <p class="text-lg">Select a listing from the history to view details</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Data -->
+    <script src="data.js"></script>
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        const historyList = document.getElementById('history-list');
+        const detailView = document.getElementById('detail-view');
+        const emptyState = document.getElementById('empty-state');
+        const sortSelect = document.getElementById('sort-select');
+
+        // State
+        let currentData = window.SCRAP_HISTORY || [];
+        
+        // Render List
+        function renderList() {
+            historyList.innerHTML = '';
+            document.getElementById('total-scans').textContent = currentData.length;
+
+            // Sort
+            const sortMode = sortSelect.value;
+            currentData.sort((a, b) => {
+                if (sortMode === 'date-desc') return new Date(b.date) - new Date(a.date);
+                if (sortMode === 'profit-desc') return b.profit - a.profit;
+                if (sortMode === 'margin-desc') return b.margin - a.margin;
+                return 0;
+            });
+
+            currentData.forEach((item, index) => {
+                const el = document.createElement('div');
+                el.className = `p-4 rounded-xl border border-slate-800 cursor-pointer transition-all hover:bg-slate-800/50 hover:border-slate-600 group ${item.verdict === 'BUY' ? 'bg-green-900/10 border-green-900/30' : 'bg-slate-900'}`;
+                
+                // Color for verdict
+                let verdictColor = 'text-slate-400';
+                if (item.verdict === 'BUY') verdictColor = 'text-green-400';
+                if (item.verdict === 'TRASH') verdictColor = 'text-red-400';
+
+                el.innerHTML = `
+                    <div class="flex justify-between items-start mb-1">
+                        <h3 class="font-medium text-slate-200 line-clamp-1 group-hover:text-cyan-400 transition-colors">${item.title}</h3>
+                        <span class="text-xs font-bold ${verdictColor}">${item.verdict}</span>
+                    </div>
+                    <div class="flex justify-between items-end">
+                        <div class="text-xs text-slate-500">${item.date}</div>
+                        <div class="text-right">
+                            <div class="text-sm font-bold text-slate-300">${item.profit}€ Profit</div>
+                            <div class="text-xs text-slate-500">${item.margin}% Margin</div>
+                        </div>
+                    </div>
+                `;
+                el.onclick = () => showDetail(item);
+                historyList.appendChild(el);
+            });
+        }
+
+        // Show Detail
+        function showDetail(item) {
+            emptyState.classList.add('hidden');
+            detailView.classList.remove('hidden');
+
+            // Populate fields
+            document.getElementById('detail-title').textContent = item.title;
+            document.getElementById('detail-date').textContent = item.date;
+            document.getElementById('detail-url').href = item.url;
+            document.getElementById('detail-price').textContent = item.price + '€';
+            document.getElementById('detail-estimated').textContent = item.estimated + '€';
+            document.getElementById('detail-profit').textContent = (item.profit > 0 ? '+' : '') + item.profit + '€';
+            document.getElementById('detail-margin').textContent = item.margin + '% Margin';
+            document.getElementById('detail-reasoning').textContent = item.reasoning;
+
+            // Verdict styling
+            const verdictEl = document.getElementById('detail-verdict');
+            verdictEl.textContent = item.verdict;
+            verdictEl.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ';
+            if (item.verdict === 'BUY') verdictEl.classList.add('bg-green-500/20', 'text-green-400');
+            else if (item.verdict === 'TRASH') verdictEl.classList.add('bg-red-500/20', 'text-red-400');
+            else verdictEl.classList.add('bg-slate-700', 'text-slate-300');
+
+            // Parts table
+            const partsBody = document.getElementById('detail-parts');
+            partsBody.innerHTML = '';
+            item.parts.forEach(part => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="p-3 text-slate-300">${part.component}</td>
+                    <td class="p-3 text-right font-mono text-slate-400">${part.estimated_price}€</td>
+                    <td class="p-3 text-slate-500 text-xs">${part.notes || '-'}</td>
+                `;
+                partsBody.appendChild(row);
+            });
+            
+            lucide.createIcons();
+        }
+
+        // Event Listeners
+        sortSelect.addEventListener('change', renderList);
+
+        // Init
+        renderList();
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Components Price Cache</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(71, 85, 105, 0.1);
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.4);
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.6);
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-8">
+
+    <div class="max-w-7xl mx-auto">
+        
+        <!-- Header -->
+        <header class="mb-10">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
+                        Components Price Cache
+                    </h1>
+                    <p class="text-slate-400 mt-2">Cached prices for reusable component lookups</p>
+                </div>
+                <div class="text-right glass px-6 py-4 rounded-xl">
+                    <div class="text-sm text-slate-400">Total Cached</div>
+                    <div class="text-3xl font-bold" id="total-cached">0</div>
+                </div>
+            </div>
+
+            <!-- Filter & Search -->
+            <div class="flex gap-4 flex-wrap">
+                <input type="text" id="search-input" placeholder="Search components..." 
+                    class="flex-1 min-w-64 px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:border-purple-500">
+                <select id="category-filter" class="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-purple-500">
+                    <option value="">All Categories</option>
+                    <option value="GPU">GPU</option>
+                    <option value="CPU">CPU</option>
+                    <option value="RAM">RAM</option>
+                    <option value="Storage">Storage</option>
+                    <option value="Motherboard">Motherboard</option>
+                    <option value="PSU">PSU</option>
+                    <option value="Case">Case</option>
+                    <option value="Cooler">Cooler</option>
+                    <option value="Other">Other</option>
+                </select>
+                <button id="export-btn" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg font-medium transition-colors">
+                    Export CSV
+                </button>
+            </div>
+        </header>
+
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="glass rounded-xl p-6 border-slate-800">
+                <div class="flex items-center gap-3 mb-2">
+                    <i data-lucide="database" class="w-5 h-5 text-purple-400"></i>
+                    <span class="text-slate-400 text-sm">Average New Price</span>
+                </div>
+                <div id="avg-new-price" class="text-2xl font-bold">€ --</div>
+            </div>
+            <div class="glass rounded-xl p-6 border-slate-800">
+                <div class="flex items-center gap-3 mb-2">
+                    <i data-lucide="trending-down" class="w-5 h-5 text-pink-400"></i>
+                    <span class="text-slate-400 text-sm">Average Used Price</span>
+                </div>
+                <div id="avg-used-price" class="text-2xl font-bold">€ --</div>
+            </div>
+            <div class="glass rounded-xl p-6 border-slate-800">
+                <div class="flex items-center gap-3 mb-2">
+                    <i data-lucide="percent" class="w-5 h-5 text-blue-400"></i>
+                    <span class="text-slate-400 text-sm">Used Discount (Avg)</span>
+                </div>
+                <div id="avg-discount" class="text-2xl font-bold">-- %</div>
+            </div>
+            <div class="glass rounded-xl p-6 border-slate-800">
+                <div class="flex items-center gap-3 mb-2">
+                    <i data-lucide="calendar" class="w-5 h-5 text-green-400"></i>
+                    <span class="text-slate-400 text-sm">Oldest Cache</span>
+                </div>
+                <div id="oldest-cache" class="text-sm font-mono">--</div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="glass rounded-2xl border-slate-800 shadow-2xl overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-800/80 text-slate-400 border-b border-slate-700">
+                        <tr>
+                            <th class="px-6 py-4 text-left font-semibold">Component Name</th>
+                            <th class="px-6 py-4 text-center font-semibold">Category</th>
+                            <th class="px-6 py-4 text-right font-semibold">New Price</th>
+                            <th class="px-6 py-4 text-right font-semibold">Used Price</th>
+                            <th class="px-6 py-4 text-right font-semibold">Discount</th>
+                            <th class="px-6 py-4 text-center font-semibold">Last Updated</th>
+                            <th class="px-6 py-4 text-center font-semibold">Source</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cache-table-body" class="divide-y divide-slate-700 bg-slate-900/50">
+                        <!-- Rows will be injected here -->
+                    </tbody>
+                </table>
+                <div id="no-results" class="text-center py-12 text-slate-500">
+                    <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-4 opacity-50"></i>
+                    <p class="text-lg">No cached components yet. Run the scraper to populate the cache.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="mt-8 glass rounded-xl p-6 border-slate-800">
+            <h3 class="font-semibold text-slate-200 mb-4 flex items-center gap-2">
+                <i data-lucide="info" class="w-5 h-5"></i> Information
+            </h3>
+            <ul class="space-y-2 text-slate-400 text-sm">
+                <li><strong>New Price:</strong> Estimated new/retail price (used as reference)</li>
+                <li><strong>Used Price:</strong> Applied discount price for used/resale market (35% discount by default)</li>
+                <li><strong>Discount:</strong> Percentage reduction applied to new price</li>
+                <li><strong>Last Updated:</strong> When this component was last priced/cached (expires after 30 days)</li>
+                <li><strong>Source:</strong> Where the price was fetched from (pcprice.watch, estimate, etc.)</li>
+            </ul>
+        </div>
+
+    </div>
+
+    <!-- Nav Bar (Link to Main Dashboard) -->
+    <div class="fixed bottom-8 right-8">
+        <a href="dashboard.html" class="glass px-6 py-3 rounded-full font-medium hover:bg-slate-800/30 transition-all flex items-center gap-2">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        const searchInput = document.getElementById('search-input');
+        const categoryFilter = document.getElementById('category-filter');
+        const tableBody = document.getElementById('cache-table-body');
+        const noResults = document.getElementById('no-results');
+        const exportBtn = document.getElementById('export-btn');
+
+        let cacheData = [];
+
+        // Load cache from CSV (simulated; in production you'd fetch from server)
+        async function loadCache() {
+            try {
+                // Fetch components_cache.csv
+                const response = await fetch('components_cache.csv');
+                const csvText = await response.text();
+                cacheData = parseCSV(csvText);
+                renderTable();
+                updateStats();
+            } catch (err) {
+                console.log('Cache not yet populated:', err);
+                noResults.style.display = 'block';
+            }
+        }
+
+        function parseCSV(text) {
+            const lines = text.trim().split('\n');
+            if (lines.length < 2) return [];
+            
+            const headers = lines[0].split(',').map(h => h.trim());
+            const data = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i];
+                if (!line.trim()) continue;
+                
+                const parts = line.split(',').map(p => p.trim());
+                const obj = {};
+                headers.forEach((header, idx) => {
+                    obj[header] = parts[idx] || '';
+                });
+                data.push(obj);
+            }
+            
+            return data;
+        }
+
+        function renderTable() {
+            const search = searchInput.value.toLowerCase();
+            const category = categoryFilter.value;
+            
+            const filtered = cacheData.filter(item => {
+                const matchSearch = item.component_name.toLowerCase().includes(search);
+                const matchCategory = !category || item.category === category;
+                return matchSearch && matchCategory;
+            });
+
+            tableBody.innerHTML = '';
+            
+            if (filtered.length === 0) {
+                noResults.style.display = 'block';
+                return;
+            }
+            
+            noResults.style.display = 'none';
+
+            filtered.forEach(item => {
+                const newPrice = parseFloat(item.estimated_new_price_eur) || 0;
+                const usedPrice = parseFloat(item.estimated_used_price_eur) || 0;
+                const discount = newPrice > 0 ? Math.round(((newPrice - usedPrice) / newPrice) * 100) : 0;
+                
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-slate-800/30 transition-colors';
+                row.innerHTML = `
+                    <td class="px-6 py-4 font-medium text-slate-100">${item.component_name}</td>
+                    <td class="px-6 py-4 text-center">
+                        <span class="px-3 py-1 rounded-full bg-slate-800 text-xs font-medium text-slate-300">
+                            ${item.category}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-right font-mono text-slate-400">€ ${newPrice.toFixed(2)}</td>
+                    <td class="px-6 py-4 text-right font-mono font-semibold text-purple-400">€ ${usedPrice.toFixed(2)}</td>
+                    <td class="px-6 py-4 text-right font-mono text-pink-400">${discount}%</td>
+                    <td class="px-6 py-4 text-center text-xs text-slate-500">${item.last_updated.split('T')[0]}</td>
+                    <td class="px-6 py-4 text-center text-xs text-slate-400">${item.source}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            document.getElementById('total-cached').textContent = cacheData.length;
+        }
+
+        function updateStats() {
+            if (cacheData.length === 0) return;
+
+            const newPrices = cacheData.map(d => parseFloat(d.estimated_new_price_eur) || 0).filter(p => p > 0);
+            const usedPrices = cacheData.map(d => parseFloat(d.estimated_used_price_eur) || 0).filter(p => p > 0);
+            
+            const avgNew = newPrices.length > 0 ? (newPrices.reduce((a, b) => a + b, 0) / newPrices.length).toFixed(2) : 0;
+            const avgUsed = usedPrices.length > 0 ? (usedPrices.reduce((a, b) => a + b, 0) / usedPrices.length).toFixed(2) : 0;
+            const avgDiscount = avgNew > 0 ? Math.round(((avgNew - avgUsed) / avgNew) * 100) : 0;
+            
+            const dates = cacheData.map(d => new Date(d.last_updated)).sort((a, b) => a - b);
+            const oldestDate = dates.length > 0 ? dates[0].toLocaleDateString() : '--';
+
+            document.getElementById('avg-new-price').textContent = '€ ' + avgNew;
+            document.getElementById('avg-used-price').textContent = '€ ' + avgUsed;
+            document.getElementById('avg-discount').textContent = avgDiscount + ' %';
+            document.getElementById('oldest-cache').textContent = oldestDate;
+        }
+
+        function exportCSV() {
+            if (cacheData.length === 0) {
+                alert('No data to export');
+                return;
+            }
+
+            const headers = ['Component Name', 'Category', 'New Price (EUR)', 'Used Price (EUR)', 'Discount %', 'Last Updated', 'Source'];
+            let csv = headers.join(',') + '\n';
+
+            cacheData.forEach(item => {
+                const newPrice = parseFloat(item.estimated_new_price_eur) || 0;
+                const usedPrice = parseFloat(item.estimated_used_price_eur) || 0;
+                const discount = newPrice > 0 ? Math.round(((newPrice - usedPrice) / newPrice) * 100) : 0;
+                
+                csv += `"${item.component_name}",${item.category},${newPrice},${usedPrice},${discount},"${item.last_updated}","${item.source}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `components_cache_${new Date().toISOString().slice(0,10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Event Listeners
+        searchInput.addEventListener('input', renderTable);
+        categoryFilter.addEventListener('change', renderTable);
+        exportBtn.addEventListener('click', exportCSV);
+
+        // Init
+        loadCache();
+    </script>
+</body>
+</html>

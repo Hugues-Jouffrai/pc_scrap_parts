@@ -1,4 +1,5 @@
 import asyncio
+import re
 from playwright.async_api import async_playwright
 from bs4 import BeautifulSoup
 
@@ -54,13 +55,38 @@ class AntigravityScraper:
                 title_tag = soup.find('h1')
                 title = title_tag.get_text(strip=True) if title_tag else "Unknown Title"
                 
-                # Extract Price (LBC specific structure often changes, relying on text search or specific classes)
-                # This is a 'best effort' extraction.
-                price_text = "0"
+                # Extract Price (LBC specific structure often changes). Best-effort extraction.
+                price_text = ""
                 # Look for price in common places
                 price_tag = soup.select_one('[data-qa-id="adview_price"]')
                 if price_tag:
-                    price_text = price_tag.get_text(strip=True).replace('€', '').replace(' ', '')
+                    raw_price = price_tag.get_text(separator=' ', strip=True)
+                else:
+                    # Fallback: search the entire page text for something that looks like a euro amount
+                    raw_price = soup.get_text(separator=' ', strip=True)
+
+                # Helper to clean and extract a numeric price (handles NBSP and thin spaces)
+                def extract_price_from_text(s: str) -> str:
+                    if not s:
+                        return ""
+                    # Common NBSP or narrow NBSP characters
+                    s = s.replace('\u00A0', ' ').replace('\u202F', ' ').replace('\u2009', ' ')
+                    # Try to find patterns like '1 000 €' or '1000€' or '1\u0000 000 €'
+                    m = re.search(r"(\d{1,3}(?:[ \.,]\d{3})*(?:[\.,]\d+)?)\s*€", s)
+                    if not m:
+                        # fallback: any standalone number sequence
+                        m = re.search(r"(\d[\d \.,]*)", s)
+                    if not m:
+                        return ""
+                    num = m.group(1)
+                    # Remove grouping spaces and non-digit punctuation, keep decimal dot
+                    num = num.replace(' ', '').replace('\u00A0', '').replace('\u202F', '')
+                    num = num.replace(',', '.')
+                    # Strip any trailing non-digit/point
+                    num = re.sub(r"[^0-9.]", '', num)
+                    return num
+
+                price_text = extract_price_from_text(raw_price)
                 
                 # Extract Description
                 description_tag = soup.select_one('[data-qa-id="adview_description_container"]')

@@ -1,5 +1,9 @@
 import asyncio
 import sys
+import json
+import os
+import webbrowser
+from datetime import datetime
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
@@ -9,6 +13,50 @@ from scraper import AntigravityScraper
 from analyzer import AntigravityAnalyzer
 
 console = Console()
+DATA_FILE = "data.js"
+DASHBOARD_FILE = "dashboard.html"
+
+def save_result(data, analysis):
+    """Saves the analysis result to data.js"""
+    
+    # Construct the result object
+    result_entry = {
+        "id": datetime.now().isoformat(),
+        "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "url": data['url'],
+        "title": data['title'],
+        "price": analysis.get('listing_price', 0),
+        "estimated": analysis.get('total_estimated_value', 0),
+        "profit": analysis.get('profit_potential', 0),
+        "margin": analysis.get('profit_percentage', 0),
+        "verdict": analysis.get('verdict', 'UNKNOWN'),
+        "parts": analysis.get('parts', []),
+        "reasoning": analysis.get('reasoning', '')
+    }
+
+    # Read existing data
+    history = []
+    if os.path.exists(DATA_FILE):
+        try:
+            with open(DATA_FILE, "r", encoding="utf-8") as f:
+                content = f.read()
+                # Strip "window.SCRAP_HISTORY = " and ";"
+                json_str = content.replace("window.SCRAP_HISTORY = ", "").strip().rstrip(";")
+                if json_str:
+                    history = json.loads(json_str)
+        except Exception as e:
+            console.print(f"[bold red]Warning: Could not read existing history: {e}[/bold red]")
+
+    # Append new result
+    history.append(result_entry)
+
+    # Write back to file
+    try:
+        with open(DATA_FILE, "w", encoding="utf-8") as f:
+            f.write(f"window.SCRAP_HISTORY = {json.dumps(history, indent=4)};")
+        console.print(f"[bold green]>> Result saved to {DATA_FILE}[/bold green]")
+    except Exception as e:
+        console.print(f"[bold red]Error saving data: {e}[/bold red]")
 
 async def main():
     console.print(Panel.fit("[bold cyan]LBC-Arbitrage: The Antigravity Tool[/bold cyan]", border_style="cyan"))
@@ -77,6 +125,13 @@ async def main():
         
         rprint(f"\n[bold]>> Reasoning:[/bold] {analysis.get('reasoning', 'No reasoning provided.')}")
         rprint(f"[dim]URL: {data['url']}[/dim]")
+
+        # 4. Save and Open Dashboard
+        save_result(data, analysis)
+        
+        dashboard_path = os.path.abspath(DASHBOARD_FILE)
+        rprint(f"\n[bold blue]>> Opening dashboard: {dashboard_path}[/bold blue]")
+        webbrowser.open(f"file://{dashboard_path}")
 
     else:
         rprint("[bold red]ERROR: Failed to retrieve data.[/bold red]")
