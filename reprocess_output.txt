@@ -1,0 +1,47 @@
+﻿Backed up data.js -> backups\data.js.bak.20251206T142608
+[1/11] Reprocessing: https://www.leboncoin.fr/ad/ordinateurs/3097344845
+[bold blue]>> Launching Antigravity engine for:[/bold blue] https://www.leboncoin.fr/ad/ordinateurs/3097344845
+[bold purple]>> Vibing with the data (AI Analysis)...[/bold purple]
+  Updated: estimated=780.0Ç, profit=500.0Ç, verdict=PASS
+[2/11] Reprocessing: https://www.leboncoin.fr/ad/ordinateurs/3096529537
+[bold blue]>> Launching Antigravity engine for:[/bold blue] https://www.leboncoin.fr/ad/ordinateurs/3096529537
+[bold purple]>> Vibing with the data (AI Analysis)...[/bold purple]
+  Updated: estimated=442.0Ç, profit=-37.0Ç, verdict=PASS
+[3/11] Reprocessing: https://www.leboncoin.fr/ad/ordinateurs/3082459408
+[bold blue]>> Launching Antigravity engine for:[/bold blue] https://www.leboncoin.fr/ad/ordinateurs/3082459408
+[bold purple]>> Vibing with the data (AI Analysis)...[/bold purple]
+  Updated: estimated=773.5Ç, profit=-226.5Ç, verdict=PASS
+[4/11] Reprocessing: https://www.leboncoin.fr/ad/ordinateurs/3082459408
+[bold blue]>> Launching Antigravity engine for:[/bold blue] https://www.leboncoin.fr/ad/ordinateurs/3082459408
+[bold purple]>> Vibing with the data (AI Analysis)...[/bold purple]
+  Updated: estimated=643.5Ç, profit=-356.5Ç, verdict=PASS
+[5/11] Reprocessing: https://www.leboncoin.fr/ad/ordinateurs/3097344845
+[bold blue]>> Launching Antigravity engine for:[/bold blue] https://www.leboncoin.fr/ad/ordinateurs/3097344845
+[bold purple]>> Vibing with the data (AI Analysis)...[/bold purple]
+  Updated: estimated=520.0Ç, profit=240.0Ç, verdict=PASS
+[6/11] Reprocessing: https://www.leboncoin.fr/ad/ordinateurs/3096529537
+[bold blue]>> Launching Antigravity engine for:[/bold blue] https://www.leboncoin.fr/ad/ordinateurs/3096529537
+[bold purple]>> Vibing with the data (AI Analysis)...[/bold purple]
+  Updated: estimated=409.5Ç, profit=-69.5Ç, verdict=TRASH
+[7/11] Reprocessing: https://www.leboncoin.fr/ad/ordinateurs/3082459408
+[bold blue]>> Launching Antigravity engine for:[/bold blue] https://www.leboncoin.fr/ad/ordinateurs/3082459408
+[bold purple]>> Vibing with the data (AI Analysis)...[/bold purple]
+  Updated: estimated=740.22Ç, profit=-259.78Ç, verdict=PASS
+[8/11] Reprocessing: https://www.leboncoin.fr/ad/ordinateurs/3097344845
+[bold blue]>> Launching Antigravity engine for:[/bold blue] https://www.leboncoin.fr/ad/ordinateurs/3097344845
+[bold purple]>> Vibing with the data (AI Analysis)...[/bold purple]
+  Updated: estimated=520.0Ç, profit=240.0Ç, verdict=PASS
+[9/11] Reprocessing: https://www.leboncoin.fr/ad/ordinateurs/3105656255
+[bold blue]>> Launching Antigravity engine for:[/bold blue] https://www.leboncoin.fr/ad/ordinateurs/3105656255
+[bold purple]>> Vibing with the data (AI Analysis)...[/bold purple]
+  Updated: estimated=325.0Ç, profit=-225.0Ç, verdict=PASS
+[10/11] Reprocessing: https://www.leboncoin.fr/ad/ordinateurs/3103523082
+[bold blue]>> Launching Antigravity engine for:[/bold blue] https://www.leboncoin.fr/ad/ordinateurs/3103523082
+[bold purple]>> Vibing with the data (AI Analysis)...[/bold purple]
+  Updated: estimated=714.22Ç, profit=-785.78Ç, verdict=PASS
+[11/11] Reprocessing: https://www.leboncoin.fr/ad/ordinateurs/3071570607
+[bold blue]>> Launching Antigravity engine for:[/bold blue] https://www.leboncoin.fr/ad/ordinateurs/3071570607
+[bold purple]>> Vibing with the data (AI Analysis)...[/bold purple]
+  Updated: estimated=442.0Ç, profit=-158.0Ç, verdict=PASS
+Reprocessing complete.
+All entries processed successfully.

@@ -1,0 +1,684 @@
+window.SCRAP_HISTORY = [
+    {
+        "id": "2025-12-06T14:26:27.089887",
+        "date": "2025-12-06 14:26",
+        "url": "https://www.leboncoin.fr/ad/ordinateurs/3097344845",
+        "title": "Pc gamer i5 7600k",
+        "price": 280.0,
+        "estimated": 780.0,
+        "profit": 500.0,
+        "margin": 178.57,
+        "verdict": "PASS",
+        "parts": [
+            {
+                "component": "Intel Core i5 7600K",
+                "estimated_price": 162.5,
+                "estimated_price_new": 250.0,
+                "cached": true,
+                "category": "CPU",
+                "notes": "Old generation CPU"
+            },
+            {
+                "component": "MSI Z270-A PRO Motherboard",
+                "estimated_price": 162.5,
+                "estimated_price_new": 250.0,
+                "cached": true,
+                "category": "Motherboard",
+                "notes": "Supports 7th Gen Intel"
+            },
+            {
+                "component": "NVIDIA GTX 1060 6GB",
+                "estimated_price": 260.0,
+                "estimated_price_new": 400.0,
+                "cached": true,
+                "category": "GPU",
+                "notes": "Mid-range older GPU"
+            },
+            {
+                "component": "16GB DDR4 RAM",
+                "estimated_price": 52.0,
+                "estimated_price_new": 80.0,
+                "cached": true,
+                "category": "RAM",
+                "notes": ""
+            },
+            {
+                "component": "ZALMAN Z11 Plus Case",
+                "estimated_price": 0,
+                "estimated_price_new": 0,
+                "cached": false,
+                "category": "Case",
+                "notes": "Non-high-end case"
+            },
+            {
+                "component": "CORSAIR 450W PSU",
+                "estimated_price": 65.0,
+                "estimated_price_new": 100.0,
+                "cached": true,
+                "category": "PSU",
+                "notes": "Entry-level Corsair PSU"
+            },
+            {
+                "component": "256GB NVMe SSD",
+                "estimated_price": 45.5,
+                "estimated_price_new": 70.0,
+                "cached": true,
+                "category": "Storage",
+                "notes": ""
+            },
+            {
+                "component": "1TB HDD",
+                "estimated_price": 32.5,
+                "estimated_price_new": 50.0,
+                "cached": true,
+                "category": "Storage",
+                "notes": ""
+            }
+        ],
+        "reasoning": "The total estimated value of the components is slightly below the listing price, and thus does not meet the 50% profit margin requirement for a BUY verdict."
+    },
+    {
+        "id": "2025-12-06T14:26:47.069175",
+        "date": "2025-12-06 14:26",
+        "url": "https://www.leboncoin.fr/ad/ordinateurs/3096529537",
+        "title": "PC Gamer NEUF SOUS BLISTER",
+        "price": 479.0,
+        "estimated": 442.0,
+        "profit": -37.0,
+        "margin": -7.72,
+        "verdict": "PASS",
+        "parts": [
+            {
+                "component": "Ryzen 5 3600",
+                "estimated_price": 162.5,
+                "estimated_price_new": 250.0,
+                "cached": true,
+                "category": "CPU",
+                "notes": ""
+            },
+            {
+                "component": "Rx 6600 8GB",
+                "estimated_price": 162.5,
+                "estimated_price_new": 250,
+                "cached": false,
+                "category": "GPU",
+                "notes": ""
+            },
+            {
+                "component": "16GB RAM",
+                "estimated_price": 39.0,
+                "estimated_price_new": 60.0,
+                "cached": true,
+                "category": "RAM",
+                "notes": ""
+            },
+            {
+                "component": "NVMe SSD",
+                "estimated_price": 45.5,
+                "estimated_price_new": 70,
+                "cached": false,
+                "category": "Storage",
+                "notes": ""
+            },
+            {
+                "component": "Windows 11 Pro",
+                "estimated_price": 32.5,
+                "estimated_price_new": 50,
+                "cached": false,
+                "category": "Other",
+                "notes": "Software"
+            }
+        ],
+        "reasoning": "The total estimated value of the components is lower than the listing price, leading to a negative margin."
+    },
+    {
+        "id": "2025-12-06T14:27:06.935215",
+        "date": "2025-12-06 14:27",
+        "url": "https://www.leboncoin.fr/ad/ordinateurs/3082459408",
+        "title": "PC gamer + écran et setup complet",
+        "price": 1000.0,
+        "estimated": 773.5,
+        "profit": -226.5,
+        "margin": -22.65,
+        "verdict": "PASS",
+        "parts": [
+            {
+                "component": "CPU: Ryzen 5 7600x",
+                "estimated_price": 149.5,
+                "estimated_price_new": 230,
+                "cached": false,
+                "category": "CPU",
+                "notes": ""
+            },
+            {
+                "component": "GPU: AMD RX 6800XT",
+                "estimated_price": 325.0,
+                "estimated_price_new": 500,
+                "cached": false,
+                "category": "GPU",
+                "notes": ""
+            },
+            {
+                "component": "RAM: Kingston Fury Beast 2x16GB DDR5",
+                "estimated_price": 52.0,
+                "estimated_price_new": 80.0,
+                "cached": true,
+                "category": "RAM",
+                "notes": ""
+            },
+            {
+                "component": "SSD: 2x1TB (Assumed SSD)",
+                "estimated_price": 52.0,
+                "estimated_price_new": 80.0,
+                "cached": true,
+                "category": "Storage",
+                "notes": ""
+            },
+            {
+                "component": "Motherboard: ASRock XE 670E Steel Legend",
+                "estimated_price": 162.5,
+                "estimated_price_new": 250,
+                "cached": false,
+                "category": "Motherboard",
+                "notes": ""
+            },
+            {
+                "component": "PSU: SeaSonic 850W 80 Plus Bronze",
+                "estimated_price": 32.5,
+                "estimated_price_new": 50.0,
+                "cached": true,
+                "category": "Other",
+                "notes": ""
+            }
+        ],
+        "reasoning": "The total estimated value of the parts is slightly below the listing price. While the components are in good condition, there is no significant profit margin."
+    },
+    {
+        "id": "2025-12-06T14:27:26.418534",
+        "date": "2025-12-06 14:27",
+        "url": "https://www.leboncoin.fr/ad/ordinateurs/3082459408",
+        "title": "PC gamer + écran et setup complet",
+        "price": 1000.0,
+        "estimated": 643.5,
+        "profit": -356.5,
+        "margin": -35.65,
+        "verdict": "PASS",
+        "parts": [
+            {
+                "component": "Ryzen 5 7600x",
+                "estimated_price": 162.5,
+                "estimated_price_new": 250.0,
+                "cached": true,
+                "category": "CPU",
+                "notes": ""
+            },
+            {
+                "component": "AMD RX 6800XT",
+                "estimated_price": 325.0,
+                "estimated_price_new": 500.0,
+                "cached": true,
+                "category": "GPU",
+                "notes": ""
+            },
+            {
+                "component": "Kingston Fury Beast 2x16go DDR5",
+                "estimated_price": 39.0,
+                "estimated_price_new": 60,
+                "cached": false,
+                "category": "RAM",
+                "notes": ""
+            },
+            {
+                "component": "ASrock XE 670E steel legend",
+                "estimated_price": 32.5,
+                "estimated_price_new": 50.0,
+                "cached": true,
+                "category": "Other",
+                "notes": ""
+            },
+            {
+                "component": "Seasonic 850w 80plus bronze",
+                "estimated_price": 32.5,
+                "estimated_price_new": 50.0,
+                "cached": true,
+                "category": "Other",
+                "notes": "High-end brand but lower tier model"
+            },
+            {
+                "component": "SSD 2x1TB",
+                "estimated_price": 52.0,
+                "estimated_price_new": 80.0,
+                "cached": true,
+                "category": "Storage",
+                "notes": "Conservative estimate assuming generic SSDs"
+            }
+        ],
+        "reasoning": "The total estimated value of the components is slightly lower than the listing price; thus, no significant profit can be made from this purchase."
+    },
+    {
+        "id": "2025-12-06T14:27:46.860638",
+        "date": "2025-12-06 14:27",
+        "url": "https://www.leboncoin.fr/ad/ordinateurs/3097344845",
+        "title": "Pc gamer i5 7600k",
+        "price": 280.0,
+        "estimated": 520.0,
+        "profit": 240.0,
+        "margin": 85.71,
+        "verdict": "PASS",
+        "parts": [
+            {
+                "component": "i5 7600K",
+                "estimated_price": 32.5,
+                "estimated_price_new": 50.0,
+                "cached": true,
+                "category": "CPU",
+                "notes": ""
+            },
+            {
+                "component": "MSI Z270-A-PRO",
+                "estimated_price": 32.5,
+                "estimated_price_new": 50.0,
+                "cached": true,
+                "category": "Other",
+                "notes": ""
+            },
+            {
+                "component": "GTX 1060 6GB",
+                "estimated_price": 260.0,
+                "estimated_price_new": 400.0,
+                "cached": true,
+                "category": "GPU",
+                "notes": ""
+            },
+            {
+                "component": "16GB DDR4 RAM",
+                "estimated_price": 52.0,
+                "estimated_price_new": 80.0,
+                "cached": true,
+                "category": "RAM",
+                "notes": ""
+            },
+            {
+                "component": "SSD NVMe 256GB",
+                "estimated_price": 45.5,
+                "estimated_price_new": 70.0,
+                "cached": true,
+                "category": "Storage",
+                "notes": ""
+            },
+            {
+                "component": "HDD 1TB",
+                "estimated_price": 32.5,
+                "estimated_price_new": 50.0,
+                "cached": true,
+                "category": "Storage",
+                "notes": ""
+            },
+            {
+                "component": "CORSAIR 450W PSU",
+                "estimated_price": 65.0,
+                "estimated_price_new": 100.0,
+                "cached": true,
+                "category": "PSU",
+                "notes": "Low wattage, older model"
+            }
+        ],
+        "reasoning": "The estimated value of the components is slightly above the listing price, but not enough to justify a profitable purchase. The PSU is valued at 0 EUR due to low wattage and it's not a high-end model. The profit margin is below 50%, thus the verdict is PASS."
+    },
+    {
+        "id": "2025-12-06T14:28:03.620000",
+        "date": "2025-12-06 14:28",
+        "url": "https://www.leboncoin.fr/ad/ordinateurs/3096529537",
+        "title": "PC Gamer NEUF SOUS BLISTER",
+        "price": 479.0,
+        "estimated": 409.5,
+        "profit": -69.5,
+        "margin": -14.51,
+        "verdict": "TRASH",
+        "parts": [
+            {
+                "component": "Ryzen 5 3600",
+                "estimated_price": 162.5,
+                "estimated_price_new": 250.0,
+                "cached": true,
+                "category": "CPU",
+                "notes": ""
+            },
+            {
+                "component": "Rx 6600 8GB",
+                "estimated_price": 162.5,
+                "estimated_price_new": 250.0,
+                "cached": true,
+                "category": "GPU",
+                "notes": ""
+            },
+            {
+                "component": "16GB RAM",
+                "estimated_price": 39.0,
+                "estimated_price_new": 60.0,
+                "cached": true,
+                "category": "RAM",
+                "notes": ""
+            },
+            {
+                "component": "NVMe SSD",
+                "estimated_price": 45.5,
+                "estimated_price_new": 70.0,
+                "cached": true,
+                "category": "Storage",
+                "notes": ""
+            },
+            {
+                "component": "PSU",
+                "estimated_price": 0,
+                "estimated_price_new": 0,
+                "cached": false,
+                "category": "PSU",
+                "notes": "Not a high-end brand"
+            }
+        ],
+        "reasoning": "The parts are not high-value enough to justify the asking price, and without specifics on high-end components, it's safer to assume standard parts, which have lower resale value."
+    },
+    {
+        "id": "2025-12-06T14:28:24.505135",
+        "date": "2025-12-06 14:28",
+        "url": "https://www.leboncoin.fr/ad/ordinateurs/3082459408",
+        "title": "PC gamer + écran et setup complet",
+        "price": 1000.0,
+        "estimated": 740.22,
+        "profit": -259.78,
+        "margin": -25.98,
+        "verdict": "PASS",
+        "parts": [
+            {
+                "component": "Seasonic 850W 80 Plus Bronze",
+                "estimated_price": 32.5,
+                "estimated_price_new": 50.0,
+                "cached": true,
+                "category": "Other",
+                "notes": "High-end PSU"
+            },
+            {
+                "component": "ASRock X670E Steel Legend",
+                "estimated_price": 32.5,
+                "estimated_price_new": 50.0,
+                "cached": true,
+                "category": "Other",
+                "notes": "Modern high-end motherboard"
+            },
+            {
+                "component": "Ryzen 5 7600X",
+                "estimated_price": 162.5,
+                "estimated_price_new": 250.0,
+                "cached": true,
+                "category": "CPU",
+                "notes": ""
+            },
+            {
+                "component": "Kingston Fury Beast 32GB DDR5",
+                "estimated_price": 135.72,
+                "estimated_price_new": 208.8,
+                "cached": true,
+                "category": "RAM",
+                "notes": ""
+            },
+            {
+                "component": "AMD RX 6800 XT",
+                "estimated_price": 325.0,
+                "estimated_price_new": 500.0,
+                "cached": true,
+                "category": "GPU",
+                "notes": ""
+            },
+            {
+                "component": "2x1TB SSDs",
+                "estimated_price": 52.0,
+                "estimated_price_new": 80.0,
+                "cached": true,
+                "category": "Storage",
+                "notes": ""
+            }
+        ],
+        "reasoning": "The estimated value of the components is close to the listing price, offering a negligible profit potential of only 1%."
+    },
+    {
+        "id": "2025-12-06T14:28:43.875226",
+        "date": "2025-12-06 14:28",
+        "url": "https://www.leboncoin.fr/ad/ordinateurs/3097344845",
+        "title": "Pc gamer i5 7600k",
+        "price": 280.0,
+        "estimated": 520.0,
+        "profit": 240.0,
+        "margin": 85.71,
+        "verdict": "PASS",
+        "parts": [
+            {
+                "component": "i5 7600K",
+                "estimated_price": 32.5,
+                "estimated_price_new": 50.0,
+                "cached": true,
+                "category": "CPU",
+                "notes": ""
+            },
+            {
+                "component": "MSI Z270-A-PRO",
+                "estimated_price": 32.5,
+                "estimated_price_new": 50.0,
+                "cached": true,
+                "category": "Other",
+                "notes": ""
+            },
+            {
+                "component": "GTX 1060 6GB",
+                "estimated_price": 260.0,
+                "estimated_price_new": 400.0,
+                "cached": true,
+                "category": "GPU",
+                "notes": ""
+            },
+            {
+                "component": "16GB DDR4 RAM",
+                "estimated_price": 52.0,
+                "estimated_price_new": 80.0,
+                "cached": true,
+                "category": "RAM",
+                "notes": ""
+            },
+            {
+                "component": "256GB NVMe SSD",
+                "estimated_price": 45.5,
+                "estimated_price_new": 70.0,
+                "cached": true,
+                "category": "Storage",
+                "notes": ""
+            },
+            {
+                "component": "1TB HDD",
+                "estimated_price": 32.5,
+                "estimated_price_new": 50.0,
+                "cached": true,
+                "category": "Storage",
+                "notes": ""
+            },
+            {
+                "component": "CORSAIR 450W PSU",
+                "estimated_price": 65.0,
+                "estimated_price_new": 100.0,
+                "cached": true,
+                "category": "PSU",
+                "notes": ""
+            }
+        ],
+        "reasoning": "The components have an estimated total value of 310 EUR, which is only slightly above the listing price of 280 EUR. The potential profit margin is 10.71%, which does not meet the 50% threshold for a 'BUY' recommendation. The system appears functional and is equipped with branded parts, so it's not considered 'TRASH'."
+    },
+    {
+        "id": "2025-12-06T14:29:01.830799",
+        "date": "2025-12-06 14:29",
+        "url": "https://www.leboncoin.fr/ad/ordinateurs/3105656255",
+        "title": "PC Gamer RTX 4060 – Windows 11 – État impeccable + clavier Razer (Neuf) ( prix négociable a vous de me donner vos prix )",
+        "price": 550.0,
+        "estimated": 325.0,
+        "profit": -225.0,
+        "margin": -40.91,
+        "verdict": "PASS",
+        "parts": [
+            {
+                "component": "Intel i5-10400F",
+                "estimated_price": 32.5,
+                "estimated_price_new": 50.0,
+                "cached": true,
+                "category": "CPU",
+                "notes": ""
+            },
+            {
+                "component": "Nvidia RTX 4060",
+                "estimated_price": 208.0,
+                "estimated_price_new": 320.0,
+                "cached": true,
+                "category": "GPU",
+                "notes": ""
+            },
+            {
+                "component": "16 Go RAM Corsaire RGB",
+                "estimated_price": 39.0,
+                "estimated_price_new": 60.0,
+                "cached": true,
+                "category": "RAM",
+                "notes": ""
+            },
+            {
+                "component": "SSD 1 To",
+                "estimated_price": 45.5,
+                "estimated_price_new": 70,
+                "cached": false,
+                "category": "Storage",
+                "notes": ""
+            }
+        ],
+        "reasoning": "The components' total estimated value is less than the listing price. The profit potential percentage does not meet the criteria for a BUY verdict."
+    },
+    {
+        "id": "2025-12-06T14:29:21.097737",
+        "date": "2025-12-06 14:29",
+        "url": "https://www.leboncoin.fr/ad/ordinateurs/3103523082",
+        "title": "Tour PC Gamer i7 / 32 Go RAM / SSD 2 To / NVIDIA RTX 4060 – Monté par LDLC, Sous Garantie + Écran 24″ Iiyama (option) – Prix négociable",
+        "price": 1500.0,
+        "estimated": 714.22,
+        "profit": -785.78,
+        "margin": -52.39,
+        "verdict": "PASS",
+        "parts": [
+            {
+                "component": "Intel Core i7-12700K",
+                "estimated_price": 162.5,
+                "estimated_price_new": 250.0,
+                "cached": true,
+                "category": "CPU",
+                "notes": ""
+            },
+            {
+                "component": "NVIDIA RTX 4060",
+                "estimated_price": 208.0,
+                "estimated_price_new": 320.0,
+                "cached": true,
+                "category": "GPU",
+                "notes": ""
+            },
+            {
+                "component": "32 Go DDR5",
+                "estimated_price": 135.72,
+                "estimated_price_new": 208.8,
+                "cached": true,
+                "category": "RAM",
+                "notes": ""
+            },
+            {
+                "component": "Samsung 980 Pro 2 To",
+                "estimated_price": 45.5,
+                "estimated_price_new": 70.0,
+                "cached": true,
+                "category": "Storage",
+                "notes": ""
+            },
+            {
+                "component": "MSI PRO Z790-P WIFI",
+                "estimated_price": 162.5,
+                "estimated_price_new": 250,
+                "cached": false,
+                "category": "Motherboard",
+                "notes": ""
+            }
+        ],
+        "reasoning": "The estimated total value of the used components is significantly lower than the listing price, leading to a negative profit potential. Therefore, it's better to pass on this deal."
+    },
+    {
+        "id": "2025-12-06T14:29:41.439228",
+        "date": "2025-12-06 14:29",
+        "url": "https://www.leboncoin.fr/ad/ordinateurs/3071570607",
+        "title": "Pc gamer",
+        "price": 600.0,
+        "estimated": 442.0,
+        "profit": -158.0,
+        "margin": -26.33,
+        "verdict": "PASS",
+        "parts": [
+            {
+                "component": "NVIDIA GeForce RTX 3060 12GB OC",
+                "estimated_price": 227.5,
+                "estimated_price_new": 350.0,
+                "cached": true,
+                "category": "GPU",
+                "notes": ""
+            },
+            {
+                "component": "Asus Prime B560M-A",
+                "estimated_price": 32.5,
+                "estimated_price_new": 50.0,
+                "cached": true,
+                "category": "Other",
+                "notes": ""
+            },
+            {
+                "component": "Intel i5 11400",
+                "estimated_price": 32.5,
+                "estimated_price_new": 50,
+                "cached": false,
+                "category": "CPU",
+                "notes": ""
+            },
+            {
+                "component": "Corsair Vengeance 16GB RGB 3600 MHz DDR4",
+                "estimated_price": 52.0,
+                "estimated_price_new": 80.0,
+                "cached": true,
+                "category": "RAM",
+                "notes": ""
+            },
+            {
+                "component": "SSD NVMe 500GB",
+                "estimated_price": 32.5,
+                "estimated_price_new": 50.0,
+                "cached": true,
+                "category": "Storage",
+                "notes": ""
+            },
+            {
+                "component": "1TB HDD",
+                "estimated_price": 32.5,
+                "estimated_price_new": 50.0,
+                "cached": true,
+                "category": "Storage",
+                "notes": ""
+            },
+            {
+                "component": "Corsair H100x Watercooling",
+                "estimated_price": 32.5,
+                "estimated_price_new": 50,
+                "cached": false,
+                "category": "Other",
+                "notes": ""
+            }
+        ],
+        "reasoning": "The total estimated value of the parts is slightly below the listing price. Therefore, there's no significant profit potential."
+    }
+];
