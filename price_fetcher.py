@@ -7,6 +7,7 @@ in components_cache.csv to avoid redundant lookups.
 import csv
 import os
 import re
+import unicodedata
 from datetime import datetime, timedelta
 from typing import Optional, Dict
 from difflib import SequenceMatcher
@@ -27,31 +28,52 @@ def normalize_component_name(name: str) -> str:
     - "SSD 2x1TB" -> "2TB SSD"
     - "2x1TB SSD" -> "2TB SSD"
     """
-    name = name.lower().strip()
-    
-    # Remove common prefixes/suffixes
-    name = re.sub(r'\b(the|a|an)\b', '', name)
-    
-    # Normalize spaces and case
+    # Normalize unicode accents first (e.g., mémoire -> memoire)
+    if isinstance(name, str):
+        name = unicodedata.normalize('NFKD', name).encode('ASCII', 'ignore').decode('utf-8')
+    name = name.strip()
+
+    # Normalize common variants (French 'Go', uppercase GB, remove extra articles)
+    name = re.sub(r'\b(go)\b', 'GB', name, flags=re.IGNORECASE)
+    # Handle French synonyms for RAM (mémoire vive, memoire)
+    name = re.sub(r'\bm[eé]moire vive\b', 'RAM', name, flags=re.IGNORECASE)
+    name = re.sub(r'\bm[eé]moire\b', 'RAM', name, flags=re.IGNORECASE)
+    name = re.sub(r'\b(the|a|an)\b', '', name, flags=re.IGNORECASE)
+    name = name.replace('\u00A0', ' ')  # NBSP
     name = ' '.join(name.split())
-    
-    # Extract and normalize RAM capacity (move to front)
-    ram_match = re.search(r'(\d+)\s*x?\s*(gb|gib)\s*(ddr[45])', name, re.IGNORECASE)
-    if ram_match:
+
+    lowered = name.lower()
+
+    # Detect RAM kits like '2x16GB' or '2 x 16 GB' and mark as KIT
+    kit_match = re.search(r'(\d+)\s*[x×]\s*(\d+)\s*(gb|gbit|gib)', lowered, re.IGNORECASE)
+    if kit_match and ('ddr4' in lowered or 'ddr5' in lowered or 'ram' in lowered):
+        count = int(kit_match.group(1))
+        per = int(kit_match.group(2))
+        total = count * per
+        ddr = 'DDR5' if 'ddr5' in lowered else ('DDR4' if 'ddr4' in lowered else '')
+        kit_label = f"{total}GB {ddr}".strip()
+        # indicate it's a kit so we prefer kit pricing for desktops
+        if ddr:
+            return f"{kit_label} KIT ({count}x{per}GB)"
+        return f"{kit_label} KIT ({count}x{per}GB)"
+
+    # Single RAM capacity patterns: handle '32GB DDR5', '32 Go DDR5', '32GB DDR5 SODIMM'
+    ram_match = re.search(r'(\d+)\s*(gb|gib)\b.*?(ddr[45])?', lowered, re.IGNORECASE)
+    if ram_match and ('ram' in lowered or 'ddr' in lowered):
         capacity = ram_match.group(1)
-        ddr = ram_match.group(3).upper()
-        name = f"{capacity}GB {ddr}"
-        return name
-    
-    # Extract single RAM capacity (move to front)
-    ram_match = re.search(r'(\d+)\s*(gb|gib)\s*(ddr[45]|memory|ram)', name, re.IGNORECASE)
-    if ram_match:
-        capacity = ram_match.group(1)
-        ddr = "DDR4"  # Default
-        if "ddr5" in name.lower():
-            ddr = "DDR5"
-        name = f"{capacity}GB {ddr}"
-        return name
+        ddr = ''
+        if 'ddr5' in lowered:
+            ddr = 'DDR5'
+        elif 'ddr4' in lowered:
+            ddr = 'DDR4'
+
+        sodimm = 'SODIMM' if re.search(r'sodimm|so-?dimm|laptop', lowered) else ''
+        parts = [f"{capacity}GB"]
+        if ddr:
+            parts.append(ddr)
+        if sodimm:
+            parts.append(sodimm)
+        return ' '.join(parts)
     
     # Extract and normalize SSD capacity (move to front, standardize format)
     # Handle both "2x1TB SSD" and "SSD 2x1TB" patterns
@@ -115,6 +137,10 @@ def ensure_cache_exists():
                     "category",
                     "estimated_new_price_eur",
                     "estimated_used_price_eur",
+                    "recommended_min_eur",
+                    "recommended_max_eur",
+                    "fetcher_estimated_new_eur",
+                    "fetcher_estimated_used_eur",
                     "last_updated",
                     "source",
                 ],
@@ -166,6 +192,10 @@ def save_cache_entry(
     category: str,
     estimated_new_price_eur: float,
     source: str = "pcprice.watch",
+    recommended_min_eur: Optional[float] = None,
+    recommended_max_eur: Optional[float] = None,
+    fetcher_estimated_new_eur: Optional[float] = None,
+    fetcher_estimated_used_eur: Optional[float] = None,
 ) -> Dict:
     """
     Save or update a component price in the cache.
@@ -195,6 +225,10 @@ def save_cache_entry(
                     "category": category,
                     "estimated_new_price_eur": estimated_new_price_eur,
                     "estimated_used_price_eur": round(estimated_used_price_eur, 2),
+                    "recommended_min_eur": recommended_min_eur if recommended_min_eur is not None else entry.get("recommended_min_eur", ""),
+                    "recommended_max_eur": recommended_max_eur if recommended_max_eur is not None else entry.get("recommended_max_eur", ""),
+                    "fetcher_estimated_new_eur": fetcher_estimated_new_eur if fetcher_estimated_new_eur is not None else entry.get("fetcher_estimated_new_eur", ""),
+                    "fetcher_estimated_used_eur": fetcher_estimated_used_eur if fetcher_estimated_used_eur is not None else entry.get("fetcher_estimated_used_eur", ""),
                     "last_updated": last_updated,
                     "source": source,
                 }
@@ -214,6 +248,10 @@ def save_cache_entry(
                             "category": category,
                             "estimated_new_price_eur": estimated_new_price_eur,
                             "estimated_used_price_eur": round(estimated_used_price_eur, 2),
+                            "recommended_min_eur": recommended_min_eur if recommended_min_eur is not None else entry.get("recommended_min_eur", ""),
+                            "recommended_max_eur": recommended_max_eur if recommended_max_eur is not None else entry.get("recommended_max_eur", ""),
+                            "fetcher_estimated_new_eur": fetcher_estimated_new_eur if fetcher_estimated_new_eur is not None else entry.get("fetcher_estimated_new_eur", ""),
+                            "fetcher_estimated_used_eur": fetcher_estimated_used_eur if fetcher_estimated_used_eur is not None else entry.get("fetcher_estimated_used_eur", ""),
                             "last_updated": last_updated,
                             "source": source,
                         }
@@ -228,6 +266,10 @@ def save_cache_entry(
                 "category": category,
                 "estimated_new_price_eur": estimated_new_price_eur,
                 "estimated_used_price_eur": round(estimated_used_price_eur, 2),
+                "recommended_min_eur": recommended_min_eur if recommended_min_eur is not None else "",
+                "recommended_max_eur": recommended_max_eur if recommended_max_eur is not None else "",
+                "fetcher_estimated_new_eur": fetcher_estimated_new_eur if fetcher_estimated_new_eur is not None else "",
+                "fetcher_estimated_used_eur": fetcher_estimated_used_eur if fetcher_estimated_used_eur is not None else "",
                 "last_updated": last_updated,
                 "source": source,
             }
@@ -236,19 +278,33 @@ def save_cache_entry(
     # Write back
     try:
         with open(CACHE_FILE, "w", newline="", encoding="utf-8") as f:
-            writer = csv.DictWriter(
-                f,
-                fieldnames=[
-                    "component_name",
-                    "category",
-                    "estimated_new_price_eur",
-                    "estimated_used_price_eur",
-                    "last_updated",
-                    "source",
-                ],
-            )
+            fieldnames = [
+                "component_name",
+                "category",
+                "estimated_new_price_eur",
+                "estimated_used_price_eur",
+                "recommended_min_eur",
+                "recommended_max_eur",
+                "fetcher_estimated_new_eur",
+                "fetcher_estimated_used_eur",
+                "last_updated",
+                "source",
+            ]
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
             writer.writeheader()
-            writer.writerows(entries)
+
+            # Sanitize entries to ensure only expected fields are written and no None values
+            sanitized = []
+            for entry in entries:
+                row = {}
+                for key in fieldnames:
+                    val = entry.get(key, "") if isinstance(entry, dict) else ""
+                    if val is None:
+                        val = ""
+                    row[key] = val
+                sanitized.append(row)
+
+            writer.writerows(sanitized)
     except Exception as e:
         print(f"[Warning] Could not save cache entry: {e}")
 
@@ -259,6 +315,8 @@ def save_cache_entry(
         "estimated_used_price_eur": round(estimated_used_price_eur, 2),
         "last_updated": last_updated,
         "source": source,
+        "fetcher_estimated_new_eur": fetcher_estimated_new_eur,
+        "fetcher_estimated_used_eur": fetcher_estimated_used_eur,
     }
 
 
@@ -280,12 +338,37 @@ def estimate_component_price(component_name: str) -> Dict:
     # Check cache
     cached_entry = get_cache_entry(component_name)
     if cached_entry:
+        # If pcprice.watch provides a recommended range, prefer its midpoint as authoritative
+        rec_min = cached_entry.get("recommended_min_eur")
+        rec_max = cached_entry.get("recommended_max_eur")
+        try:
+            if rec_min and rec_max:
+                rec_min_f = float(rec_min)
+                rec_max_f = float(rec_max)
+                if rec_min_f > 0 and rec_max_f > 0:
+                    midpoint = (rec_min_f + rec_max_f) / 2.0
+                    used = midpoint * (1 - USED_PART_DISCOUNT)
+                    return {
+                        "component_name": cached_entry["component_name"],
+                        "estimated_new_price_eur": round(midpoint, 2),
+                        "estimated_used_price_eur": round(used, 2),
+                        "cached": True,
+                        "category": cached_entry["category"],
+                        "fetcher_estimated_new_eur": cached_entry.get("fetcher_estimated_new_eur", ""),
+                        "fetcher_estimated_used_eur": cached_entry.get("fetcher_estimated_used_eur", ""),
+                    }
+        except Exception:
+            pass
+
+        # Fallback to stored values if no recommended range present
         return {
             "component_name": cached_entry["component_name"],
             "estimated_new_price_eur": float(cached_entry["estimated_new_price_eur"]),
             "estimated_used_price_eur": float(cached_entry["estimated_used_price_eur"]),
             "cached": True,
             "category": cached_entry["category"],
+            "fetcher_estimated_new_eur": cached_entry.get("fetcher_estimated_new_eur", ""),
+            "fetcher_estimated_used_eur": cached_entry.get("fetcher_estimated_used_eur", ""),
         }
 
     # Fallback: estimate based on component name patterns

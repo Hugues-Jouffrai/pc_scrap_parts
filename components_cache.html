@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Components Price Cache</title>
+    <title>components prices</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -39,7 +39,7 @@
             <div class="flex justify-between items-center mb-6">
                 <div>
                     <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
-                        Components Price Cache
+                        components prices
                     </h1>
                     <p class="text-slate-400 mt-2">Cached prices for reusable component lookups</p>
                 </div>
@@ -50,10 +50,11 @@
             </div>
 
             <!-- Filter & Search -->
-            <div class="flex gap-4 flex-wrap">
+            <div class="flex gap-4 flex-wrap items-center">
                 <input type="text" id="search-input" placeholder="Search components..." 
                     class="flex-1 min-w-64 px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:border-purple-500">
-                <select id="category-filter" class="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-purple-500">
+
+                <select id="category-filter" class="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-purple-500">
                     <option value="">All Categories</option>
                     <option value="GPU">GPU</option>
                     <option value="CPU">CPU</option>
@@ -65,9 +66,33 @@
                     <option value="Cooler">Cooler</option>
                     <option value="Other">Other</option>
                 </select>
+
+                <select id="source-filter" class="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-purple-500">
+                    <option value="">All Sources</option>
+                </select>
+
+                <select id="sort-select" class="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-purple-500">
+                    <option value="date-desc">Newest</option>
+                    <option value="date-asc">Oldest</option>
+                    <option value="price-desc">New Price ↓</option>
+                    <option value="price-asc">New Price ↑</option>
+                    <option value="used-desc">Used Price ↓</option>
+                    <option value="used-asc">Used Price ↑</option>
+                </select>
+
+                <input id="min-price" type="number" placeholder="Min €" class="w-24 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100" />
+                <input id="max-price" type="number" placeholder="Max €" class="w-24 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100" />
+
                 <button id="export-btn" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg font-medium transition-colors">
                     Export CSV
                 </button>
+                <button id="debug-btn" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg font-medium transition-colors">
+                    Show CSV Row
+                </button>
+                <div class="ml-2 flex items-center gap-2">
+                    <label for="warn-threshold" class="text-slate-300 text-sm">Warn thresh.</label>
+                    <input id="warn-threshold" type="number" min="5" max="100" step="1" value="30" class="w-16 px-2 py-1 bg-slate-800 border border-slate-700 rounded-lg text-slate-100" title="Warning threshold percentage (midpoint vs estimated)" />
+                </div>
             </div>
         </header>
 
@@ -102,6 +127,11 @@
                 <div id="oldest-cache" class="text-sm font-mono">--</div>
             </div>
         </div>
+        <!-- Debug panel (hidden by default) -->
+        <div id="debug-panel" class="glass rounded-xl p-4 border-slate-800 mb-6" style="display:none;">
+            <h3 class="font-semibold text-slate-200 mb-2">CSV Debug</h3>
+            <div id="debug-content" class="text-sm text-slate-300 font-mono whitespace-pre-wrap"></div>
+        </div>
 
         <!-- Table -->
         <div class="glass rounded-2xl border-slate-800 shadow-2xl overflow-hidden">
@@ -113,6 +143,10 @@
                             <th class="px-6 py-4 text-center font-semibold">Category</th>
                             <th class="px-6 py-4 text-right font-semibold">New Price</th>
                             <th class="px-6 py-4 text-right font-semibold">Used Price</th>
+                            <th class="px-6 py-4 text-right font-semibold">Recommended Range</th>
+                            <th class="px-6 py-4 text-right font-semibold">Fetcher New</th>
+                            <th class="px-6 py-4 text-right font-semibold">Fetcher Used</th>
+                            <th class="px-6 py-4 text-center font-semibold">Warn</th>
                             <th class="px-6 py-4 text-right font-semibold">Discount</th>
                             <th class="px-6 py-4 text-center font-semibold">Last Updated</th>
                             <th class="px-6 py-4 text-center font-semibold">Source</th>
@@ -140,6 +174,8 @@
                 <li><strong>Discount:</strong> Percentage reduction applied to new price</li>
                 <li><strong>Last Updated:</strong> When this component was last priced/cached (expires after 30 days)</li>
                 <li><strong>Source:</strong> Where the price was fetched from (pcprice.watch, estimate, etc.)</li>
+                <li><strong>Recommended Range:</strong> When available, this shows the authoritative min–max (from pcprice.watch). We use the midpoint to align our estimate.</li>
+                <li><strong>Warning badge:</strong> Appears when our estimated new price deviates from the recommended midpoint by more than the configured threshold (default 30%).</li>
             </ul>
         </div>
 
@@ -157,83 +193,75 @@
 
         const searchInput = document.getElementById('search-input');
         const categoryFilter = document.getElementById('category-filter');
+        const sourceFilter = document.getElementById('source-filter');
+        const sortSelect = document.getElementById('sort-select');
+        const minPriceInput = document.getElementById('min-price');
+        const maxPriceInput = document.getElementById('max-price');
+        const warnThresholdInput = document.getElementById('warn-threshold');
         const tableBody = document.getElementById('cache-table-body');
         const noResults = document.getElementById('no-results');
         const exportBtn = document.getElementById('export-btn');
+        const debugBtn = document.getElementById('debug-btn');
+        const debugPanel = document.getElementById('debug-panel');
+        const debugContent = document.getElementById('debug-content');
 
         let cacheData = [];
 
-        // Load cache from CSV (simulated; in production you'd fetch from server)
+        // Load cache from CSV
         async function loadCache() {
             try {
                 console.log('Attempting to fetch components_cache.csv...');
-                
-                // Fetch components_cache.csv with error handling
-                const response = await fetch('components_cache.csv', {
-                    method: 'GET',
-                    headers: {
-                        'Cache-Control': 'no-cache'
-                    }
-                });
-                
+
+                const response = await fetch('components_cache.csv', { cache: 'no-store' });
                 console.log('Fetch response received:', response.status, response.statusText);
-                
+
                 if (!response.ok) {
                     console.error('Failed to fetch CSV:', response.status, response.statusText);
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                
+
                 const csvText = await response.text();
                 console.log('CSV text received, length:', csvText.length);
-                
+
                 if (!csvText || csvText.trim().length === 0) {
                     console.log('CSV file is empty');
                     noResults.style.display = 'block';
                     return;
                 }
-                
-                console.log('CSV content (first 200 chars):', csvText.substring(0, 200));
-                
+
                 cacheData = parseCSV(csvText);
                 console.log('Loaded cache data:', cacheData.length, 'components');
-                
+
                 if (cacheData.length === 0) {
                     noResults.style.display = 'block';
                     return;
                 }
-                
+
+                populateSourceOptions();
                 renderTable();
                 updateStats();
             } catch (err) {
                 console.error('Cache loading error:', err);
-                console.error('Error stack:', err.stack);
                 noResults.style.display = 'block';
-                noResults.innerHTML = `<div class="text-center py-12">
-                    <p class="text-red-400 mb-2">Error loading cache: ${err.message}</p>
-                    <p class="text-slate-500 text-sm">Check browser console (F12) for details</p>
-                </div>`;
+                noResults.innerHTML = `<div class="text-center py-12">\n                    <p class="text-red-400 mb-2">Error loading cache: ${err.message}</p>\n                    <p class="text-slate-500 text-sm">Check browser console (F12) for details</p>\n                </div>`;
             }
         }
 
         function parseCSV(text) {
             const lines = text.trim().split('\n');
-            if (lines.length < 2) {
-                console.log('CSV has no data rows');
-                return [];
-            }
-            
+            if (lines.length < 2) return [];
+
             const headers = lines[0].split(',').map(h => h.trim());
             const data = [];
-            
+
             for (let i = 1; i < lines.length; i++) {
                 const line = lines[i].trim();
-                if (!line) continue;  // Skip empty lines
-                
-                // Better CSV parsing that handles quoted fields
+                if (!line) continue;
+
                 const parts = [];
                 let current = '';
                 let inQuotes = false;
-                
+
                 for (let j = 0; j < line.length; j++) {
                     const char = line[j];
                     if (char === '"') {
@@ -246,46 +274,103 @@
                     }
                 }
                 parts.push(current.trim().replace(/^"|"$/g, ''));
-                
+
                 const obj = {};
                 headers.forEach((header, idx) => {
                     obj[header] = parts[idx] || '';
                 });
                 data.push(obj);
             }
-            
-            console.log('Parsed', data.length, 'rows from CSV');
+
             return data;
         }
 
+        function populateSourceOptions() {
+            const sources = Array.from(new Set(cacheData.map(d => (d.source || '').trim()).filter(s => s)));
+            // Clear existing (keep default)
+            sourceFilter.innerHTML = '<option value="">All Sources</option>';
+            sources.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s;
+                opt.textContent = s;
+                sourceFilter.appendChild(opt);
+            });
+        }
+
         function renderTable() {
-            const search = searchInput.value.toLowerCase();
+            const search = (searchInput.value || '').toLowerCase();
             const category = categoryFilter.value;
-            
-            const filtered = cacheData.filter(item => {
-                const matchSearch = item.component_name.toLowerCase().includes(search);
-                const matchCategory = !category || item.category === category;
-                return matchSearch && matchCategory;
+            const source = sourceFilter.value;
+            const sortMode = sortSelect.value;
+            const minPrice = parseFloat(minPriceInput.value) || null;
+            const maxPrice = parseFloat(maxPriceInput.value) || null;
+            const warnThreshold = (parseFloat(warnThresholdInput.value) || 30) / 100.0;
+
+            let filtered = cacheData.filter(item => {
+                const name = (item.component_name || '').toLowerCase();
+                const newPrice = parseFloat(item.estimated_new_price_eur) || 0;
+
+                if (search && !name.includes(search)) return false;
+                if (category && item.category !== category) return false;
+                if (source && item.source !== source) return false;
+                if (minPrice !== null && newPrice < minPrice) return false;
+                if (maxPrice !== null && newPrice > maxPrice) return false;
+                return true;
             });
 
-            console.log('Filtered to', filtered.length, 'items from', cacheData.length);
-            
+            // Sorting
+            filtered.sort((a, b) => {
+                const aNew = parseFloat(a.estimated_new_price_eur) || 0;
+                const bNew = parseFloat(b.estimated_new_price_eur) || 0;
+                const aUsed = parseFloat(a.estimated_used_price_eur) || 0;
+                const bUsed = parseFloat(b.estimated_used_price_eur) || 0;
+                const aDate = new Date(a.last_updated || 0);
+                const bDate = new Date(b.last_updated || 0);
+
+                switch (sortMode) {
+                    case 'date-asc': return aDate - bDate;
+                    case 'date-desc': return bDate - aDate;
+                    case 'price-asc': return aNew - bNew;
+                    case 'price-desc': return bNew - aNew;
+                    case 'used-asc': return aUsed - bUsed;
+                    case 'used-desc': return bUsed - aUsed;
+                    default: return 0;
+                }
+            });
+
+            console.log('Filtering ->', filtered.length, 'of', cacheData.length);
+
             tableBody.innerHTML = '';
-            
+
             if (filtered.length === 0) {
                 noResults.style.display = 'block';
                 tableBody.parentElement.style.display = 'none';
+                document.getElementById('total-cached').textContent = 0;
                 return;
             }
-            
+
             tableBody.parentElement.style.display = 'block';
             noResults.style.display = 'none';
 
-            filtered.forEach(item => {
+                filtered.forEach(item => {
                 const newPrice = parseFloat(item.estimated_new_price_eur) || 0;
                 const usedPrice = parseFloat(item.estimated_used_price_eur) || 0;
+                const fetcherNew = parseFloat(item.fetcher_estimated_new_eur) || 0;
+                const fetcherUsed = parseFloat(item.fetcher_estimated_used_eur) || 0;
                 const discount = newPrice > 0 ? Math.round(((newPrice - usedPrice) / newPrice) * 100) : 0;
-                
+                const recMin = item.recommended_min_eur ? parseFloat(item.recommended_min_eur) : null;
+                const recMax = item.recommended_max_eur ? parseFloat(item.recommended_max_eur) : null;
+                let recHtml = '';
+                let warnHtml = '';
+                if (recMin && recMax) {
+                    recHtml = `€ ${recMin.toFixed(2)} - € ${recMax.toFixed(2)}`;
+                    const midpoint = (recMin + recMax) / 2.0;
+                    const diff = Math.abs(midpoint - newPrice) / midpoint;
+                    if (diff > warnThreshold) {
+                        warnHtml = `<span title="Estimated price deviates >${Math.round(warnThreshold*100)}% from recommended midpoint" class="inline-block px-2 py-1 text-xs rounded-full bg-amber-600 text-slate-900 font-medium">!</span>`;
+                    }
+                }
+
                 const row = document.createElement('tr');
                 row.className = 'hover:bg-slate-800/30 transition-colors';
                 row.innerHTML = `
@@ -297,6 +382,10 @@
                     </td>
                     <td class="px-6 py-4 text-right font-mono text-slate-400">€ ${newPrice.toFixed(2)}</td>
                     <td class="px-6 py-4 text-right font-mono font-semibold text-purple-400">€ ${usedPrice.toFixed(2)}</td>
+                    <td class="px-6 py-4 text-right font-mono text-slate-300">${recHtml}</td>
+                    <td class="px-6 py-4 text-right font-mono text-slate-400">€ ${fetcherNew.toFixed(2)}</td>
+                    <td class="px-6 py-4 text-right font-mono font-semibold text-pink-400">€ ${fetcherUsed.toFixed(2)}</td>
+                    <td class="px-6 py-4 text-center">${warnHtml}</td>
                     <td class="px-6 py-4 text-right font-mono text-pink-400">${discount}%</td>
                     <td class="px-6 py-4 text-center text-xs text-slate-500">${item.last_updated.split('T')[0]}</td>
                     <td class="px-6 py-4 text-center text-xs text-slate-400">${item.source}</td>
@@ -304,7 +393,7 @@
                 tableBody.appendChild(row);
             });
 
-            document.getElementById('total-cached').textContent = cacheData.length;
+            document.getElementById('total-cached').textContent = filtered.length;
         }
 
         function updateStats() {
@@ -312,11 +401,11 @@
 
             const newPrices = cacheData.map(d => parseFloat(d.estimated_new_price_eur) || 0).filter(p => p > 0);
             const usedPrices = cacheData.map(d => parseFloat(d.estimated_used_price_eur) || 0).filter(p => p > 0);
-            
+
             const avgNew = newPrices.length > 0 ? (newPrices.reduce((a, b) => a + b, 0) / newPrices.length).toFixed(2) : 0;
             const avgUsed = usedPrices.length > 0 ? (usedPrices.reduce((a, b) => a + b, 0) / usedPrices.length).toFixed(2) : 0;
             const avgDiscount = avgNew > 0 ? Math.round(((avgNew - avgUsed) / avgNew) * 100) : 0;
-            
+
             const dates = cacheData.map(d => new Date(d.last_updated)).sort((a, b) => a - b);
             const oldestDate = dates.length > 0 ? dates[0].toLocaleDateString() : '--';
 
@@ -332,15 +421,31 @@
                 return;
             }
 
-            const headers = ['Component Name', 'Category', 'New Price (EUR)', 'Used Price (EUR)', 'Discount %', 'Last Updated', 'Source'];
+            const headers = ['Component Name', 'Category', 'New Price (EUR)', 'Used Price (EUR)', 'Fetcher New (EUR)', 'Fetcher Used (EUR)', 'Discount %', 'Recommended Range', 'Last Updated', 'Source'];
             let csv = headers.join(',') + '\n';
 
-            cacheData.forEach(item => {
+            // Export currently filtered view (call renderTable first to ensure latest filter applied)
+            const rows = Array.from(tableBody.querySelectorAll('tr'));
+            if (rows.length === 0) {
+                alert('No rows to export (apply filters)');
+                return;
+            }
+
+            // Build CSV from underlying data matching the visible rows
+            const visibleNames = rows.map(r => r.children[0].innerText.trim());
+            const visibleData = cacheData.filter(d => visibleNames.includes(d.component_name));
+
+            visibleData.forEach(item => {
                 const newPrice = parseFloat(item.estimated_new_price_eur) || 0;
                 const usedPrice = parseFloat(item.estimated_used_price_eur) || 0;
                 const discount = newPrice > 0 ? Math.round(((newPrice - usedPrice) / newPrice) * 100) : 0;
-                
-                csv += `"${item.component_name}",${item.category},${newPrice},${usedPrice},${discount},"${item.last_updated}","${item.source}"\n`;
+                const fetcherNew = parseFloat(item.fetcher_estimated_new_eur) || 0;
+                const fetcherUsed = parseFloat(item.fetcher_estimated_used_eur) || 0;
+                const recMin = item.recommended_min_eur ? parseFloat(item.recommended_min_eur) : null;
+                const recMax = item.recommended_max_eur ? parseFloat(item.recommended_max_eur) : null;
+                const recRange = (recMin && recMax) ? `€ ${recMin.toFixed(2)} - € ${recMax.toFixed(2)}` : '';
+
+                csv += `"${item.component_name}",${item.category},${newPrice},${usedPrice},${fetcherNew},${fetcherUsed},${discount},"${recRange}","${item.last_updated}","${item.source}"\n`;
             });
 
             const blob = new Blob([csv], { type: 'text/csv' });
@@ -352,12 +457,56 @@
             URL.revokeObjectURL(url);
         }
 
+        function showCSVDebug() {
+            if (!cacheData || cacheData.length === 0) {
+                debugContent.textContent = 'No cache loaded yet.';
+                debugPanel.style.display = 'block';
+                return;
+            }
+
+            const query = (searchInput.value || '').toLowerCase().trim();
+            let matches = [];
+            if (query.length === 0) {
+                // show first 10 rows as sample
+                matches = cacheData.slice(0, 10);
+            } else {
+                matches = cacheData.filter(d => (d.component_name || '').toLowerCase().includes(query) || (d.source || '').toLowerCase().includes(query));
+            }
+
+            if (!matches || matches.length === 0) {
+                debugContent.textContent = `No matching rows for "${query}"`;
+                debugPanel.style.display = 'block';
+                return;
+            }
+
+            // Build readable output
+            const lines = matches.map(m => {
+                return `component_name: ${m.component_name}\n  category: ${m.category}\n  estimated_new_price_eur: ${m.estimated_new_price_eur}\n  estimated_used_price_eur: ${m.estimated_used_price_eur}\n  fetcher_estimated_new_eur: ${m.fetcher_estimated_new_eur}\n  fetcher_estimated_used_eur: ${m.fetcher_estimated_used_eur}\n  recommended_min_eur: ${m.recommended_min_eur}\n  recommended_max_eur: ${m.recommended_max_eur}\n  last_updated: ${m.last_updated}\n  source: ${m.source}\n`;
+            });
+            debugContent.textContent = lines.join('\n----\n');
+            debugPanel.style.display = 'block';
+        }
+
         // Event Listeners
         searchInput.addEventListener('input', renderTable);
         categoryFilter.addEventListener('change', renderTable);
+        sourceFilter.addEventListener('change', renderTable);
+        sortSelect.addEventListener('change', renderTable);
+        minPriceInput.addEventListener('input', renderTable);
+        maxPriceInput.addEventListener('input', renderTable);
+        warnThresholdInput.addEventListener('input', () => {
+            try { localStorage.setItem('warnThreshold', warnThresholdInput.value); } catch(e){}
+            renderTable();
+        });
         exportBtn.addEventListener('click', exportCSV);
+        debugBtn.addEventListener('click', showCSVDebug);
 
         // Init
+        // Restore saved threshold if present
+        try {
+            const saved = localStorage.getItem('warnThreshold');
+            if (saved) warnThresholdInput.value = saved;
+        } catch (e) {}
         loadCache();
     </script>
 </body>

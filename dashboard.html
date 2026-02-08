@@ -93,6 +93,9 @@
                         <!-- Parts Table -->
                         <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
                             <i data-lucide="cpu" class="w-5 h-5 text-slate-400"></i> Components Breakdown
+                            <span class="ml-2 text-slate-400 text-sm" title="Fetcher estimates are heuristic fallbacks (informational). 'Recommended' or authoritative prices (pcprice.watch) are primary when available."> 
+                                <i data-lucide="info" class="w-4 h-4 inline-block align-middle"></i>
+                            </span>
                         </h3>
                         <div class="overflow-hidden rounded-xl border border-slate-700 mb-8">
                             <table class="w-full text-left text-sm">
@@ -100,6 +103,11 @@
                                     <tr>
                                         <th class="p-3 font-medium">Component</th>
                                         <th class="p-3 font-medium text-right">Est. Price</th>
+                                        <th class="p-3 font-medium text-right">Rec Min</th>
+                                        <th class="p-3 font-medium text-right">Rec Max</th>
+                                        <th class="p-3 font-medium text-right">Auth Used</th>
+                                        <th class="p-3 font-medium text-right">Fetcher New</th>
+                                        <th class="p-3 font-medium text-right">Fetcher Used</th>
                                         <th class="p-3 font-medium">Notes</th>
                                     </tr>
                                 </thead>
@@ -229,6 +237,52 @@
             normalized = normalized.trim();
             return normalized;
         }
+
+        // Components cache map (normalized name -> row)
+        const componentsCacheMap = new Map();
+
+        // Simple CSV parser (handles quoted fields)
+        function parseCSV(text) {
+            const lines = text.trim().split('\n');
+            if (lines.length < 2) return [];
+            const headers = lines[0].split(',').map(h => h.trim());
+            const data = [];
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i];
+                if (!line) continue;
+                const parts = [];
+                let current = '';
+                let inQuotes = false;
+                for (let j = 0; j < line.length; j++) {
+                    const ch = line[j];
+                    if (ch === '"') { inQuotes = !inQuotes; }
+                    else if (ch === ',' && !inQuotes) { parts.push(current); current = ''; }
+                    else { current += ch; }
+                }
+                parts.push(current);
+                const obj = {};
+                headers.forEach((h, idx) => { obj[h] = (parts[idx] || '').replace(/^"|"$/g, '').trim(); });
+                data.push(obj);
+            }
+            return data;
+        }
+
+        // Load components_cache.csv and build lookup map
+        async function loadComponentsCache() {
+            try {
+                const res = await fetch('components_cache.csv', { cache: 'no-store' });
+                if (!res.ok) return;
+                const text = await res.text();
+                const rows = parseCSV(text);
+                rows.forEach(r => {
+                    const key = normalizeName(r.component_name || '');
+                    if (key) componentsCacheMap.set(key, r);
+                });
+                console.log('Loaded components cache map:', componentsCacheMap.size);
+            } catch (e) {
+                console.warn('Could not load components_cache.csv for enrichment', e);
+            }
+        }
         
         // Deduplicate data on load
         currentData = deduplicateByURL(currentData);
@@ -237,6 +291,9 @@
                 item.parts = deduplicateComponents(item.parts);
             }
         });
+
+        // Load components cache to enrich parts (non-blocking)
+        loadComponentsCache();
         
         // Render List
         function renderList() {
@@ -305,12 +362,48 @@
             // Parts table
             const partsBody = document.getElementById('detail-parts');
             partsBody.innerHTML = '';
+
+            // Enrich parts from components cache when available
+            item.parts.forEach(part => {
+                try {
+                    const key = normalizeName(part.component || '');
+                    if (componentsCacheMap.has(key)) {
+                        const cached = componentsCacheMap.get(key);
+                        // attach cache fields to part for rendering
+                        part.fetcher_estimated_new_eur = part.fetcher_estimated_new_eur || cached.fetcher_estimated_new_eur || cached.fetcher_estimated_new || '';
+                        part.fetcher_estimated_used_eur = part.fetcher_estimated_used_eur || cached.fetcher_estimated_used_eur || cached.fetcher_estimated_used || '';
+                        part.estimated_new_from_cache = cached.estimated_new_price_eur || '';
+                        part.estimated_used_from_cache = cached.estimated_used_price_eur || '';
+                        part.recommended_min_eur = cached.recommended_min_eur || '';
+                        part.recommended_max_eur = cached.recommended_max_eur || '';
+                        part.cache_source = cached.source || '';
+                    }
+                } catch (e) {
+                    // non-fatal
+                }
+            });
+
             item.parts.forEach(part => {
                 const row = document.createElement('tr');
+                // Support multiple possible field names for fetcher values
+                const fetcherNew = part.fetcher_estimated_new_eur || part.fetcher_new || '';
+                const fetcherUsed = part.fetcher_estimated_used_eur || part.fetcher_used || '';
+                const authUsed = part.estimated_used_from_cache ? parseFloat(part.estimated_used_from_cache || 0) : null;
+                const recMin = part.recommended_min_eur ? parseFloat(part.recommended_min_eur) : null;
+                const recMax = part.recommended_max_eur ? parseFloat(part.recommended_max_eur) : null;
+                const recMinText = recMin ? '€ ' + recMin.toFixed(2) : '';
+                const recMaxText = recMax ? '€ ' + recMax.toFixed(2) : '';
+                const notesText = (part.notes || '-') + (part.cache_source ? ` [${part.cache_source}]` : '');
+
                 row.innerHTML = `
                     <td class="p-3 text-slate-300">${part.component}</td>
                     <td class="p-3 text-right font-mono text-slate-400">${part.estimated_price}€</td>
-                    <td class="p-3 text-slate-500 text-xs">${part.notes || '-'}</td>
+                    <td class="p-3 text-right font-mono text-slate-300">${recMinText}</td>
+                    <td class="p-3 text-right font-mono text-slate-300">${recMaxText}</td>
+                    <td class="p-3 text-right font-mono text-slate-300">${authUsed ? '€ ' + authUsed.toFixed(2) : ''}</td>
+                    <td class="p-3 text-right font-mono text-slate-400">${fetcherNew ? fetcherNew + '€' : ''}</td>
+                    <td class="p-3 text-right font-mono text-pink-400">${fetcherUsed ? fetcherUsed + '€' : ''}</td>
+                    <td class="p-3 text-slate-500 text-xs">${notesText}</td>
                 `;
                 partsBody.appendChild(row);
             });
