@@ -9,11 +9,99 @@ import os
 import re
 from datetime import datetime, timedelta
 from typing import Optional, Dict
+from difflib import SequenceMatcher
 
 
 CACHE_FILE = "components_cache.csv"
 USED_PART_DISCOUNT = 0.35  # 35% discount for used parts
 CACHE_EXPIRY_DAYS = 30
+
+
+def normalize_component_name(name: str) -> str:
+    """
+    Normalize component names to enable better deduplication.
+    Examples:
+    - "RAM DDR4 16 GB" -> "16GB DDR4"
+    - "16gb DDR4 Ram" -> "16GB DDR4"
+    - "AMD RX 6800XT" -> "RX 6800XT"
+    - "SSD 2x1TB" -> "2TB SSD"
+    - "2x1TB SSD" -> "2TB SSD"
+    """
+    name = name.lower().strip()
+    
+    # Remove common prefixes/suffixes
+    name = re.sub(r'\b(the|a|an)\b', '', name)
+    
+    # Normalize spaces and case
+    name = ' '.join(name.split())
+    
+    # Extract and normalize RAM capacity (move to front)
+    ram_match = re.search(r'(\d+)\s*x?\s*(gb|gib)\s*(ddr[45])', name, re.IGNORECASE)
+    if ram_match:
+        capacity = ram_match.group(1)
+        ddr = ram_match.group(3).upper()
+        name = f"{capacity}GB {ddr}"
+        return name
+    
+    # Extract single RAM capacity (move to front)
+    ram_match = re.search(r'(\d+)\s*(gb|gib)\s*(ddr[45]|memory|ram)', name, re.IGNORECASE)
+    if ram_match:
+        capacity = ram_match.group(1)
+        ddr = "DDR4"  # Default
+        if "ddr5" in name.lower():
+            ddr = "DDR5"
+        name = f"{capacity}GB {ddr}"
+        return name
+    
+    # Extract and normalize SSD capacity (move to front, standardize format)
+    # Handle both "2x1TB SSD" and "SSD 2x1TB" patterns
+    ssd_match = re.search(r'(\d+)\s*x?\s*(\d+)?\s*(tb|gb)\s*(ssd|nvme)?', name, re.IGNORECASE)
+    if ssd_match and ("ssd" in name.lower() or "nvme" in name.lower()):
+        if ssd_match.group(2):  # Multiple drives like "2x1TB"
+            capacity = int(ssd_match.group(1)) * int(ssd_match.group(2))
+        else:
+            capacity = ssd_match.group(1)
+        unit = ssd_match.group(3).upper()
+        name = f"{capacity}{unit} SSD"
+        return name
+    
+    # Normalize known component patterns
+    name = re.sub(r'\bseasonic\s+(\d+)w\s+80\s*plus\s+bronze\b', r'SeaSonic \1W 80Plus Bronze', name, flags=re.IGNORECASE)
+    name = re.sub(r'\brx\s+6800\s*xt?\b', 'RX 6800XT', name, flags=re.IGNORECASE)
+    name = re.sub(r'\brtx\s+(\d+)\b', r'RTX \1', name, flags=re.IGNORECASE)
+    name = re.sub(r'\bgtx\s+(\d+)\b', r'GTX \1', name, flags=re.IGNORECASE)
+    name = re.sub(r'\bryzen\s+(\d+)\s+(\d+)x?\b', r'Ryzen \1 \2X', name, flags=re.IGNORECASE)
+    name = re.sub(r'\bi[357][-]?(\d+)', r'i\1', name, flags=re.IGNORECASE)
+    
+    # Final cleanup
+    name = ' '.join(name.split())
+    return name
+
+
+def fuzzy_match_component(component_name: str, cached_entries: list, threshold: float = 0.85) -> Optional[Dict]:
+    """
+    Fuzzy match a component name against cached entries.
+    Returns the best match if similarity > threshold, else None.
+    """
+    if not cached_entries:
+        return None
+    
+    normalized_name = normalize_component_name(component_name)
+    best_match = None
+    best_ratio = 0
+    
+    for entry in cached_entries:
+        cached_normalized = normalize_component_name(entry.get("component_name", ""))
+        ratio = SequenceMatcher(None, normalized_name, cached_normalized).ratio()
+        
+        if ratio > best_ratio:
+            best_ratio = ratio
+            best_match = entry
+    
+    if best_ratio >= threshold:
+        return best_match
+    
+    return None
 
 
 def ensure_cache_exists():
@@ -37,22 +125,37 @@ def ensure_cache_exists():
 def get_cache_entry(component_name: str) -> Optional[Dict]:
     """
     Retrieve a cached component price entry if it exists and is recent.
+    Uses fuzzy matching to handle name variations (e.g., "RAM DDR4 16 GB" vs "16GB DDR4").
     Returns None if not found or expired.
     """
     ensure_cache_exists()
     try:
         with open(CACHE_FILE, "r", newline="", encoding="utf-8") as f:
             reader = csv.DictReader(f)
-            for row in reader:
-                if row["component_name"].lower() == component_name.lower():
-                    # Check expiry
-                    try:
-                        updated = datetime.fromisoformat(row["last_updated"])
-                        if datetime.now() - updated > timedelta(days=CACHE_EXPIRY_DAYS):
-                            return None  # Expired
-                        return row
-                    except Exception:
-                        return None
+            cached_entries = list(reader)
+        
+        # Try exact match first
+        for row in cached_entries:
+            if row["component_name"].lower() == component_name.lower():
+                try:
+                    updated = datetime.fromisoformat(row["last_updated"])
+                    if datetime.now() - updated > timedelta(days=CACHE_EXPIRY_DAYS):
+                        return None  # Expired
+                    return row
+                except Exception:
+                    return None
+        
+        # Try fuzzy match
+        fuzzy_match = fuzzy_match_component(component_name, cached_entries, threshold=0.85)
+        if fuzzy_match:
+            try:
+                updated = datetime.fromisoformat(fuzzy_match["last_updated"])
+                if datetime.now() - updated > timedelta(days=CACHE_EXPIRY_DAYS):
+                    return None  # Expired
+                return fuzzy_match
+            except Exception:
+                return None
+    
     except Exception:
         pass
     return None
@@ -67,6 +170,7 @@ def save_cache_entry(
     """
     Save or update a component price in the cache.
     Automatically calculates used price as (new_price * (1 - USED_PART_DISCOUNT)).
+    Uses fuzzy matching to detect and merge duplicate entries with similar names.
     """
     ensure_cache_exists()
 
@@ -82,7 +186,7 @@ def save_cache_entry(
     except Exception:
         pass
 
-    # Update or add entry
+    # Check for exact match first
     found = False
     for entry in entries:
         if entry["component_name"].lower() == component_name.lower():
@@ -97,6 +201,25 @@ def save_cache_entry(
             )
             found = True
             break
+    
+    # If not found, check for fuzzy match (to avoid duplicates like "16GB DDR4" vs "RAM DDR4 16 GB")
+    if not found:
+        fuzzy_match = fuzzy_match_component(component_name, entries, threshold=0.85)
+        if fuzzy_match:
+            # Update the fuzzy-matched entry with new normalized name
+            for entry in entries:
+                if entry["component_name"].lower() == fuzzy_match["component_name"].lower():
+                    entry.update(
+                        {
+                            "category": category,
+                            "estimated_new_price_eur": estimated_new_price_eur,
+                            "estimated_used_price_eur": round(estimated_used_price_eur, 2),
+                            "last_updated": last_updated,
+                            "source": source,
+                        }
+                    )
+                    found = True
+                    break
 
     if not found:
         entries.append(

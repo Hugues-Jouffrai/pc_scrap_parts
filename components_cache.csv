@@ -1,12 +1,24 @@
 component_name,category,estimated_new_price_eur,estimated_used_price_eur,last_updated,source
-Ryzen 5 7600x,CPU,230,149.5,2025-12-05T20:03:44.738768,pcprice.watch
-AMD RX 6800XT,GPU,500,325.0,2025-12-05T20:03:44.778928,pcprice.watch
-Kingston Fury Beast 2x16GB DDR5,RAM,80,52.0,2025-12-05T20:03:44.802696,pcprice.watch
-ASrock XE 670E Steel Legend,Other,50,32.5,2025-12-05T20:03:44.828030,pcprice.watch
-Seasonic 850W 80plus Bronze,Other,50,32.5,2025-12-05T20:03:44.852387,pcprice.watch
-2x1TB SSD,Storage,80,52.0,2025-12-05T20:03:44.878695,pcprice.watch
-RTX 3060,GPU,350,227.5,2025-12-05T20:04:25.444952,pcprice.watch
-Seasonic 850W 80 Plus Bronze,Other,50,32.5,2025-12-05T20:05:28.421963,pcprice.watch
-SSD 2x1TB,Storage,80,52.0,2025-12-05T20:05:48.410687,pcprice.watch
-SeaSonic 850W 80 Plus Bronze PSU,PSU,150,97.5,2025-12-05T20:05:48.438583,pcprice.watch
-Liquid Freezer III 240 RGB,Other,50,32.5,2025-12-05T20:05:48.467831,pcprice.watch
+Intel i5 7600K,CPU,50,32.5,2025-12-06T02:32:38.150671,pcprice.watch
+MSI Z270-A-PRO,Other,50,32.5,2025-12-06T02:32:38.241357,pcprice.watch
+NVIDIA GTX 1060 6GB,GPU,400,260.0,2025-12-06T02:32:38.328767,pcprice.watch
+16GB DDR4 RAM,RAM,80,52.0,2025-12-06T02:32:38.425402,pcprice.watch
+256GB NVMe SSD,Storage,70,45.5,2025-12-06T02:32:38.529028,pcprice.watch
+1000GB HDD,Storage,50,32.5,2025-12-06T02:32:38.624807,pcprice.watch
+CORSAIR 450W PSU,PSU,100,65.0,2025-12-06T02:32:38.720236,pcprice.watch
+Ryzen 5 3600,CPU,250,162.5,2025-12-06T02:33:00.211227,pcprice.watch
+Rx 6600,GPU,250,162.5,2025-12-06T02:33:00.289377,pcprice.watch
+SSD NVMe,Storage,70,45.5,2025-12-06T02:33:00.398918,pcprice.watch
+ASRock XE670E Steel Legend,Other,50,32.5,2025-12-06T02:33:25.717513,pcprice.watch
+AMD Ryzen 5 7600X,CPU,230,149.5,2025-12-06T02:33:25.838903,pcprice.watch
+AMD RX 6800XT,GPU,500,325.0,2025-12-06T02:33:25.928191,pcprice.watch
+Seasonic 850W 80 Plus Bronze,Other,50,32.5,2025-12-06T02:33:25.972842,pcprice.watch
+SSD 2x 1TB,Storage,80,52.0,2025-12-06T02:33:26.021988,pcprice.watch
+MSI Z270-A-PRO Motherboard,Motherboard,250,162.5,2025-12-06T02:33:47.427946,pcprice.watch
+GTX 1060 6GB,GPU,400,260.0,2025-12-06T02:33:47.522282,pcprice.watch
+i5 7600K,CPU,50,32.5,2025-12-06T02:34:44.223851,pcprice.watch
+HDD 1TB,Storage,50,32.5,2025-12-06T02:34:44.380680,pcprice.watch
+Intel i5-10400F,CPU,50,32.5,2025-12-06T02:46:58.593495,pcprice.watch
+Nvidia RTX 4060,GPU,320,208.0,2025-12-06T02:46:58.730693,pcprice.watch
+16 Go RAM Corsaire RGB,RAM,60,39.0,2025-12-06T02:46:58.844391,pcprice.watch
+1 To SSD,Storage,70,45.5,2025-12-06T02:46:58.965464,pcprice.watch

@@ -6,6 +6,7 @@
     <title>LBC Arbitrage Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="data.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
@@ -139,6 +140,103 @@
 
         // State
         let currentData = window.SCRAP_HISTORY || [];
+        
+        // Deduplicate functions
+        function deduplicateByURL(data) {
+            /**
+             * Remove duplicate URL entries, keeping only the most recent one.
+             * URLs are grouped and only the latest entry (by date) is kept.
+             */
+            const urlMap = new Map();
+            
+            data.forEach(item => {
+                const url = item.url;
+                if (!urlMap.has(url)) {
+                    urlMap.set(url, item);
+                } else {
+                    const existing = urlMap.get(url);
+                    const itemDate = new Date(item.date || item.id);
+                    const existingDate = new Date(existing.date || existing.id);
+                    if (itemDate > existingDate) {
+                        urlMap.set(url, item);
+                    }
+                }
+            });
+            
+            return Array.from(urlMap.values());
+        }
+        
+        function deduplicateComponents(parts) {
+            /**
+             * Remove duplicate components from parts list, keeping only the latest entry.
+             * Components are matched using fuzzy matching (similar to price_fetcher.py).
+             */
+            const seen = new Map();
+            
+            parts.forEach(part => {
+                const normalized = normalizeName(part.component || '');
+                
+                if (!seen.has(normalized)) {
+                    seen.set(normalized, part);
+                } else {
+                    // Keep the one with more info (has notes or higher price)
+                    const existing = seen.get(normalized);
+                    const existingNotes = (existing.notes || '').length;
+                    const newNotes = (part.notes || '').length;
+                    const existingPrice = parseFloat(existing.estimated_price || 0);
+                    const newPrice = parseFloat(part.estimated_price || 0);
+                    
+                    if (newNotes > existingNotes || (newPrice > existingPrice && newNotes >= existingNotes)) {
+                        seen.set(normalized, part);
+                    }
+                }
+            });
+            
+            return Array.from(seen.values());
+        }
+        
+        function normalizeName(name) {
+            /**
+             * Normalize component names for comparison.
+             * Similar logic to price_fetcher.py.
+             */
+            let normalized = name.toLowerCase().trim();
+            
+            // Remove common words
+            normalized = normalized.replace(/\b(the|a|an)\b/g, '');
+            normalized = normalized.replace(/\s+/g, ' ');
+            
+            // Normalize common patterns
+            normalized = normalized.replace(/ram|memory/g, 'ram');
+            normalized = normalized.replace(/ssd|nvme/g, 'ssd');
+            normalized = normalized.replace(/hdd|disk/g, 'hdd');
+            normalized = normalized.replace(/psu|power\s*supply/g, 'psu');
+            normalized = normalized.replace(/gpu|graphics|video/g, 'gpu');
+            normalized = normalized.replace(/cpu|processor|core/g, 'cpu');
+            normalized = normalized.replace(/mobo|motherboard/g, 'motherboard');
+            
+            // Normalize numbers (16gb, 16 gb, 16 Go -> 16gb)
+            normalized = normalized.replace(/(\d+)\s*(gb|go|tb|gib)\b/gi, '$1gb');
+            normalized = normalized.replace(/(\d+)\s*x\s*(\d+)\s*(gb|go|tb|gib)\b/gi, (m, a, b, u) => `${a*b}gb`);
+            
+            // Normalize brand names
+            normalized = normalized.replace(/nvidia|geforce/g, 'nvidia');
+            normalized = normalized.replace(/amd|radeon/g, 'amd');
+            normalized = normalized.replace(/intel|core/g, 'intel');
+            normalized = normalized.replace(/corsair/g, 'corsair');
+            normalized = normalized.replace(/seasonic/g, 'seasonic');
+            
+            normalized = normalized.trim();
+            return normalized;
+        }
+        
+        // Deduplicate data on load
+        currentData = deduplicateByURL(currentData);
+        currentData.forEach(item => {
+            if (item.parts && Array.isArray(item.parts)) {
+                item.parts = deduplicateComponents(item.parts);
+            }
+        });
         
         // Render List
         function renderList() {

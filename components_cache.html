@@ -166,29 +166,52 @@
         // Load cache from CSV (simulated; in production you'd fetch from server)
         async function loadCache() {
             try {
+                console.log('Attempting to fetch components_cache.csv...');
+                
                 // Fetch components_cache.csv with error handling
-                const response = await fetch('components_cache.csv');
+                const response = await fetch('components_cache.csv', {
+                    method: 'GET',
+                    headers: {
+                        'Cache-Control': 'no-cache'
+                    }
+                });
+                
+                console.log('Fetch response received:', response.status, response.statusText);
+                
                 if (!response.ok) {
                     console.error('Failed to fetch CSV:', response.status, response.statusText);
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
+                
                 const csvText = await response.text();
+                console.log('CSV text received, length:', csvText.length);
+                
                 if (!csvText || csvText.trim().length === 0) {
                     console.log('CSV file is empty');
                     noResults.style.display = 'block';
                     return;
                 }
+                
+                console.log('CSV content (first 200 chars):', csvText.substring(0, 200));
+                
                 cacheData = parseCSV(csvText);
                 console.log('Loaded cache data:', cacheData.length, 'components');
+                
                 if (cacheData.length === 0) {
                     noResults.style.display = 'block';
                     return;
                 }
+                
                 renderTable();
                 updateStats();
             } catch (err) {
                 console.error('Cache loading error:', err);
+                console.error('Error stack:', err.stack);
                 noResults.style.display = 'block';
+                noResults.innerHTML = `<div class="text-center py-12">
+                    <p class="text-red-400 mb-2">Error loading cache: ${err.message}</p>
+                    <p class="text-slate-500 text-sm">Check browser console (F12) for details</p>
+                </div>`;
             }
         }
 
