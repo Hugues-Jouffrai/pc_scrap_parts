@@ -107,6 +107,12 @@ class AntigravityAnalyzer:
         enriched_parts = []
         for part in parts:
             component_name = part.get('component', '')
+            # Normalize common French terms before price lookup (e.g., "mémoire vive" -> "RAM")
+            try:
+                component_name = re.sub(r'\bm[eé]moire vive\b', 'RAM', component_name, flags=re.IGNORECASE)
+                component_name = re.sub(r'\bm[eé]moire\b', 'RAM', component_name, flags=re.IGNORECASE)
+            except Exception:
+                pass
             model_price = part.get('estimated_price', 0)
             
             # Query the price fetcher for cached/estimated used price
